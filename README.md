@@ -37,6 +37,7 @@ In production make sure you read them in from an environment variable.
 ```
 CAS_TOKEN = 'your-token'
 CAS_SOURCE_ID = 'your-source-id'
+CAS_BASE_URL (optional - defaults to https://auth.kagiso.io) = 'xyz'
 ```
 
 ## Testing
