@@ -6,6 +6,7 @@ setup(
     version='0.2.0',
     author='Kagiso Media',
     author_email='development@kagiso.io',
+    description='Kasigo Django Auth Backend',
     url='https://github.com/Kagiso-Future-Media/django_auth',
     packages=find_packages(),
     install_requires=[
