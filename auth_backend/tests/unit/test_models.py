@@ -1,10 +1,12 @@
 from dateutil import parser
 from django.test import TestCase
 from model_mommy import mommy
+import pytest
 import responses
 
 from . import mocks
 from ... import models
+from ...exceptions import CASException
 
 
 class KagisoUserTest(TestCase):
@@ -73,6 +75,18 @@ class KagisoUserTest(TestCase):
         assert result.modified == parser.parse(api_data['modified'])
 
     @responses.activate
+    def test_create_invalid_status_code_raises(self):
+        email = 'test@email.com'
+        mocks.mock_out_post_users(1, email, status=500)
+
+        with pytest.raises(CASException):
+            mommy.make(
+                models.KagisoUser,
+                id=None,
+                email=email,
+            )
+
+    @responses.activate
     def test_update(self):
         # ------------------------
         # -------Arrange----------
@@ -130,6 +144,18 @@ class KagisoUserTest(TestCase):
         assert result.modified == parser.parse(api_data['modified'])
 
     @responses.activate
+    def test_update_invalid_status_code_raises(self):
+        mocks.mock_out_post_users(1, 'test@email.com')
+        user = mommy.make(models.KagisoUser, id=None)
+        email = 'test@email.com'
+        url, api_data = mocks.mock_out_put_users(1, email, status=500)
+
+        user.email = email
+
+        with pytest.raises(CASException):
+            user.save()
+
+    @responses.activate
     def test_delete(self):
         mocks.mock_out_post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
@@ -144,6 +170,15 @@ class KagisoUserTest(TestCase):
         assert responses.calls[1].request.url == url
 
         assert user_deleted
+
+    @responses.activate
+    def test_delete_invalid_status_code_raises(self):
+        mocks.mock_out_post_users(1, 'test@email.com')
+        user = mommy.make(models.KagisoUser, id=None)
+        mocks.mock_out_delete_users(user.id, status=500)
+
+        with pytest.raises(CASException):
+            user.delete()
 
     def test_get_full_name_returns_email(self):
         email = 'test@email.com'
@@ -200,6 +235,22 @@ class KagisoUserTest(TestCase):
         assert not result.confirmation_token
 
     @responses.activate
+    def test_confirm_email_invalid_status_code_raises(self):
+        _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
+        user = mommy.make(models.KagisoUser, id=None)
+        mocks.mock_out_put_users(
+            user.id,
+            user.email,
+            profile=user.profile
+        )
+        mocks.mock_out_post_confirm_email(user.id, status=500)
+
+        with pytest.raises(CASException):
+            user.confirm_email(post_data['confirmation_token'])
+
+        assert not user.email_confirmed
+
+    @responses.activate
     def test_record_sign_out(self):
         id = 1
         _, post_data = mocks.mock_out_post_users(id, 'test@email.com')
@@ -212,6 +263,17 @@ class KagisoUserTest(TestCase):
         assert responses.calls[1].request.url == url
 
         assert did_sign_out
+
+    @responses.activate
+    def test_record_sign_out_invalid_status_code_raises(self):
+        id = 1
+        _, post_data = mocks.mock_out_post_users(id, 'test@email.com')
+        user = mommy.make(models.KagisoUser, id=None)
+        mocks.mock_out_delete_sessions(id, status=500)
+
+        with pytest.raises(CASException):
+            did_sign_out = user.record_sign_out()
+            assert not did_sign_out
 
     @responses.activate
     def test_generate_reset_password_token(self):
@@ -227,6 +289,16 @@ class KagisoUserTest(TestCase):
         assert reset_password_token == data['reset_password_token']  # noqa
 
     @responses.activate
+    def test_generate_reset_password_token_invalid_status_raises(self):
+        _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
+        user = mommy.make(models.KagisoUser, id=None)
+        url, data = mocks.mock_out_get_reset_password(user.id, status=500)
+
+        with pytest.raises(CASException):
+            reset_password_token = user.generate_reset_password_token()
+            assert reset_password_token is None
+
+    @responses.activate
     def test_reset_password(self):
         _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
@@ -238,3 +310,17 @@ class KagisoUserTest(TestCase):
         assert responses.calls[1].request.url == url
 
         assert did_password_reset
+
+    @responses.activate
+    def test_reset_password_invalid_status_code_raises(self):
+        _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
+        user = mommy.make(models.KagisoUser, id=None)
+        mocks.mock_out_post_reset_password(user.id, status=500)
+
+        with pytest.raises(CASException):
+            did_password_reset = user.reset_password(
+                'new_password',
+                'test_token'
+            )
+
+            assert not did_password_reset

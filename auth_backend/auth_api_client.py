@@ -34,8 +34,6 @@ def call(endpoint, method='GET', payload=None):
     logger.debug('payload={0}'.format(payload))
     logger.debug('json={0}'.format(json.dumps(payload)))
 
-    _raise_if_4xx_or_5xx_but_not_404(request)
-
     json_data = {}
     try:
         json_data = request.json()
@@ -44,13 +42,3 @@ def call(endpoint, method='GET', payload=None):
         pass
 
     return request.status_code, json_data
-
-
-def _raise_if_4xx_or_5xx_but_not_404(request):
-    try:
-        logger.debug('response={0}'.format(request.json()))
-    except ValueError:
-        # requests chokes on empty json body
-        pass
-    if not request.status_code == 404:
-        request.raise_for_status()
