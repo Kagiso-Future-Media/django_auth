@@ -3,7 +3,7 @@ import json
 import responses
 
 
-def mock_out_post_users(id, email, status=201,**kwargs):
+def mock_out_post_users(id, email, status=201, **kwargs):
     url = 'https://auth.kagiso.io/api/v1/users/.json'
     data = {
         'id': id,

@@ -5,8 +5,8 @@ import pytest
 import responses
 
 from . import mocks
-from ...exceptions import CASException
 from ... import models
+from ...exceptions import CASException
 
 
 class KagisoUserTest(TestCase):
@@ -269,7 +269,7 @@ class KagisoUserTest(TestCase):
         id = 1
         _, post_data = mocks.mock_out_post_users(id, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        url = mocks.mock_out_delete_sessions(id, status=500)
+        mocks.mock_out_delete_sessions(id, status=500)
 
         with pytest.raises(CASException):
             did_sign_out = user.record_sign_out()

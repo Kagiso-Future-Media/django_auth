@@ -1,8 +1,6 @@
 import json
 
 from django.test import TestCase
-import pytest
-import requests
 import responses
 
 from ... import auth_api_client
