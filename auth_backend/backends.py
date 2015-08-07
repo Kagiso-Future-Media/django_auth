@@ -22,8 +22,16 @@ class KagisoBackend(ModelBackend):
 
         payload = {
             'email': email,
-            'password': password,
         }
+
+        # Social signins don't have passwords
+        if password:
+            payload['password'] = password
+
+        # Support social sign_ins
+        strategy = kwargs.get('strategy')
+        if strategy:
+            payload['strategy'] = strategy
 
         status, data = auth_api_client.call('sessions', 'POST', payload)
 

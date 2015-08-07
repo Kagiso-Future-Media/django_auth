@@ -46,7 +46,10 @@ class KagisoUserTest(TestCase):
 
         # ----- Can the user sign in? -----
         auth_backend = KagisoBackend()
-        signed_in_user = auth_backend.authenticate(user.email, password)
+        signed_in_user = auth_backend.authenticate(
+            email=user.email,
+            password=password
+        )
         assert signed_in_user == user
 
         # ----- Update user -----
@@ -81,6 +84,28 @@ class KagisoUserTest(TestCase):
         # ----- Delete user -----
         updated_result.delete()
 
+    def test_social_sign_in(self):
+        # ----- Create user -----
+        email = utils.random_email()
+
+        user = mommy.prepare(
+            models.KagisoUser,
+            id=None,
+            email=email,
+        )
+        user.set_unusable_password()
+        user.save()
+        user.confirm_email(user.confirmation_token)
+
+        # ----- Can the user sign in? -----
+        auth_backend = KagisoBackend()
+        signed_in_user = auth_backend.authenticate(
+            email=user.email,
+            strategy='facebook'
+        )
+
+        assert signed_in_user == user
+
     def test_reset_password(self):
         # ----- Create the user -----
         email = utils.random_email()
@@ -101,5 +126,8 @@ class KagisoUserTest(TestCase):
 
         # ----- Can the user still sign in? -----
         auth_backend = KagisoBackend()
-        result = auth_backend.authenticate(user.email, new_password)
+        result = auth_backend.authenticate(
+            email=user.email,
+            password=new_password
+        )
         assert result == user

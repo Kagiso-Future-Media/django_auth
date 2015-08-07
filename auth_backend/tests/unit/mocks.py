@@ -105,7 +105,7 @@ def mock_out_post_reset_password(id):
     return url
 
 
-def mock_out_post_sessions(email, password, status):
+def mock_out_post_sessions(status):
     url = 'https://auth.kagiso.io/api/v1/sessions/.json'
 
     responses.add(
