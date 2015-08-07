@@ -46,6 +46,11 @@ Postgres is needed to run the tests, as JSONField's are utilised for profiles et
 
 ```
 pip install -r requirements.txt
-py.test --ds=auth_backend.tests.settings.ci
+py.test
+py.test --ds=auth_backend.tests.settings.ci # For Codeship
 ```
 
+To run the integration tests (excluded by default as they are slow):
+```
+py.test auth_backend/tests/integration/test_integration.py
+```
