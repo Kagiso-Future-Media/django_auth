@@ -1,6 +1,7 @@
 from django.contrib.auth.backends import ModelBackend
 
 from . import auth_api_client
+from .exceptions import CASException
 from .models import KagisoUser
 
 
@@ -34,6 +35,11 @@ class KagisoBackend(ModelBackend):
             payload['strategy'] = strategy
 
         status, data = auth_api_client.call('sessions', 'POST', payload)
+
+        print('here')
+        print(status)
+        if status not in (200, 404,):
+            raise CASException(status, data)
 
         if status == 200:
             return user

@@ -7,6 +7,7 @@ from django.utils import timezone
 from jsonfield import JSONField
 
 from . import auth_api_client
+from .exceptions import CASException
 from .managers import AuthManager
 
 
@@ -54,7 +55,8 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         endpoint = 'users/{id}/confirm_email'.format(id=self.id)
         status, data = auth_api_client.call(endpoint, 'POST', payload)
 
-        assert status == 200
+        if not status == 200:
+            raise CASException(status, data)
 
         self.confirmation_token = None
         self.email_confirmed = timezone.now()
@@ -64,7 +66,8 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         endpoint = 'users/{id}/reset_password'.format(id=self.id)
         status, data = auth_api_client.call(endpoint, 'GET')
 
-        assert status == 200
+        if not status == 200:
+            raise CASException(status, data)
 
         return data['reset_password_token']
 
@@ -74,15 +77,21 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             'password': password,
         }
         endpoint = 'users/{id}/reset_password'.format(id=self.id)
-        status, _ = auth_api_client.call(endpoint, 'POST', payload)
+        status, data = auth_api_client.call(endpoint, 'POST', payload)
 
-        return status == 200
+        if not status == 200:
+            raise CASException(status, data)
+
+        return True
 
     def record_sign_out(self):
         endpoint = 'sessions/{id}'.format(id=self.id)
         status, data = auth_api_client.call(endpoint, 'DELETE')
 
-        return status == 200
+        if not status == 200:
+            raise CASException(status, data)
+
+        return True
 
     def _create_user_in_db_and_cas(self):
         payload = {
@@ -97,7 +106,8 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
         status, data = auth_api_client.call('users', 'POST', payload)
 
-        assert status == 201
+        if not status == 201:
+            raise CASException(status, data)
 
         self.id = data['id']
         self.email = data['email']
@@ -123,7 +133,8 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         status, data = auth_api_client.call(
             'users/{id}'.format(id=self.id), 'PUT', payload)
 
-        assert status == 200
+        if not status == 200:
+            raise CASException(status, data)
 
         self.email = data['email']
         self.first_name = data['first_name']
@@ -141,7 +152,9 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 def delete_user_from_cas(sender, instance, *args, **kwargs):
     status, data = auth_api_client.call(
         'users/{id}'.format(id=instance.id), 'DELETE')
-    assert status == 204
+
+    if not status == 204:
+        raise CASException(status, data)
 
 
 @receiver(pre_save, sender=KagisoUser)

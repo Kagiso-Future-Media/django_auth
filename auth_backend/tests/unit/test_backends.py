@@ -1,8 +1,10 @@
 from django.test import TestCase
+import pytest
 import responses
 
 from . import mocks
 from ...backends import KagisoBackend
+from ...exceptions import CASException
 from ...models import KagisoUser
 
 
@@ -32,6 +34,20 @@ class KagisoBackendTest(TestCase):
 
         assert isinstance(result, KagisoUser)
         assert result.id == user.id
+
+    @responses.activate
+    def test_authenticate_invalid_status_code_raises(self):
+        email = 'test@email.com'
+        password = 'random'
+        url, api_data = mocks.mock_out_post_users(1, email)
+        KagisoUser.objects.create_user(email, password)
+
+        mocks.mock_out_post_sessions(500)
+
+        backend = KagisoBackend()
+
+        with pytest.raises(CASException):
+            backend.authenticate(email, password)
 
     @responses.activate
     def test_authenticate_with_social_sign_in_returns_user(self):

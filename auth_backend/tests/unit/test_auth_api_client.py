@@ -85,38 +85,3 @@ class TestApiClient(TestCase):
             0].request.url == 'https://auth.kagiso.io/api/v1/test_endpoint/1/.json'  # noqa
         assert data == {}
         assert status == 204
-
-    @responses.activate
-    def test_4xx_raises_if_not_404(self):
-        responses.add(
-            responses.GET,
-            'https://auth.kagiso.io/api/v1/test_endpoint/1/.json',
-            body=json.dumps({}),
-            status=403,
-        )
-
-        with pytest.raises(requests.exceptions.HTTPError):
-            auth_api_client.call('test_endpoint/1', method='GET')
-
-    @responses.activate
-    def test_404_does_not_raise(self):
-        responses.add(
-            responses.GET,
-            'https://auth.kagiso.io/api/v1/test_endpoint/1/.json',
-            body=json.dumps({}),
-            status=404,
-        )
-
-        auth_api_client.call('test_endpoint/1', method='GET')
-
-    @responses.activate
-    def test_5xx_raises(self):
-        responses.add(
-            responses.GET,
-            'https://auth.kagiso.io/api/v1/test_endpoint/1/.json',
-            body=json.dumps({}),
-            status=500,
-        )
-
-        with pytest.raises(requests.exceptions.HTTPError):
-            auth_api_client.call('test_endpoint/1', method='GET')
