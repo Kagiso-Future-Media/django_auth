@@ -39,4 +39,5 @@ class KagisoBackend(ModelBackend):
         if status not in (200, 404,):
             raise CASException(status, data)
 
-        return user
+        if status == 200:
+            return user
