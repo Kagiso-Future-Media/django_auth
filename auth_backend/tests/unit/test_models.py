@@ -6,7 +6,7 @@ import responses
 
 from . import mocks
 from ... import models
-from ...exceptions import CASException
+from ...exceptions import CASUnexpectedStatusCode
 
 
 class KagisoUserTest(TestCase):
@@ -79,7 +79,7 @@ class KagisoUserTest(TestCase):
         email = 'test@email.com'
         mocks.mock_out_post_users(1, email, status=500)
 
-        with pytest.raises(CASException):
+        with pytest.raises(CASUnexpectedStatusCode):
             mommy.make(
                 models.KagisoUser,
                 id=None,
@@ -152,7 +152,7 @@ class KagisoUserTest(TestCase):
 
         user.email = email
 
-        with pytest.raises(CASException):
+        with pytest.raises(CASUnexpectedStatusCode):
             user.save()
 
     @responses.activate
@@ -177,7 +177,7 @@ class KagisoUserTest(TestCase):
         user = mommy.make(models.KagisoUser, id=None)
         mocks.mock_out_delete_users(user.id, status=500)
 
-        with pytest.raises(CASException):
+        with pytest.raises(CASUnexpectedStatusCode):
             user.delete()
 
     def test_get_full_name_returns_email(self):
@@ -245,7 +245,7 @@ class KagisoUserTest(TestCase):
         )
         mocks.mock_out_post_confirm_email(user.id, status=500)
 
-        with pytest.raises(CASException):
+        with pytest.raises(CASUnexpectedStatusCode):
             user.confirm_email(post_data['confirmation_token'])
 
         assert not user.email_confirmed
@@ -271,7 +271,7 @@ class KagisoUserTest(TestCase):
         user = mommy.make(models.KagisoUser, id=None)
         mocks.mock_out_delete_sessions(id, status=500)
 
-        with pytest.raises(CASException):
+        with pytest.raises(CASUnexpectedStatusCode):
             did_sign_out = user.record_sign_out()
             assert not did_sign_out
 
@@ -294,7 +294,7 @@ class KagisoUserTest(TestCase):
         user = mommy.make(models.KagisoUser, id=None)
         url, data = mocks.mock_out_get_reset_password(user.id, status=500)
 
-        with pytest.raises(CASException):
+        with pytest.raises(CASUnexpectedStatusCode):
             reset_password_token = user.generate_reset_password_token()
             assert reset_password_token is None
 
@@ -317,7 +317,7 @@ class KagisoUserTest(TestCase):
         user = mommy.make(models.KagisoUser, id=None)
         mocks.mock_out_post_reset_password(user.id, status=500)
 
-        with pytest.raises(CASException):
+        with pytest.raises(CASUnexpectedStatusCode):
             did_password_reset = user.reset_password(
                 'new_password',
                 'test_token'

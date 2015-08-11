@@ -4,7 +4,7 @@ import responses
 
 from . import mocks
 from ...backends import KagisoBackend
-from ...exceptions import CASException
+from ...exceptions import CASUnexpectedStatusCode
 from ...models import KagisoUser
 
 
@@ -46,7 +46,7 @@ class KagisoBackendTest(TestCase):
 
         backend = KagisoBackend()
 
-        with pytest.raises(CASException):
+        with pytest.raises(CASUnexpectedStatusCode):
             backend.authenticate(email, password)
 
     @responses.activate

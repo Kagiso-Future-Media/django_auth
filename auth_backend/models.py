@@ -7,7 +7,7 @@ from django.utils import timezone
 from jsonfield import JSONField
 
 from . import auth_api_client
-from .exceptions import CASException
+from .exceptions import CASUnexpectedStatusCode
 from .managers import AuthManager
 
 
@@ -56,7 +56,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         status, data = auth_api_client.call(endpoint, 'POST', payload)
 
         if not status == 200:
-            raise CASException(status, data)
+            raise CASUnexpectedStatusCode(status, data)
 
         self.confirmation_token = None
         self.email_confirmed = timezone.now()
@@ -67,7 +67,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         status, data = auth_api_client.call(endpoint, 'GET')
 
         if not status == 200:
-            raise CASException(status, data)
+            raise CASUnexpectedStatusCode(status, data)
 
         return data['reset_password_token']
 
@@ -80,7 +80,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         status, data = auth_api_client.call(endpoint, 'POST', payload)
 
         if not status == 200:
-            raise CASException(status, data)
+            raise CASUnexpectedStatusCode(status, data)
 
         return True
 
@@ -89,7 +89,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         status, data = auth_api_client.call(endpoint, 'DELETE')
 
         if not status == 200:
-            raise CASException(status, data)
+            raise CASUnexpectedStatusCode(status, data)
 
         return True
 
@@ -107,7 +107,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         status, data = auth_api_client.call('users', 'POST', payload)
 
         if not status == 201:
-            raise CASException(status, data)
+            raise CASUnexpectedStatusCode(status, data)
 
         self.id = data['id']
         self.email = data['email']
@@ -134,7 +134,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             'users/{id}'.format(id=self.id), 'PUT', payload)
 
         if not status == 200:
-            raise CASException(status, data)
+            raise CASUnexpectedStatusCode(status, data)
 
         self.email = data['email']
         self.first_name = data['first_name']
@@ -154,7 +154,7 @@ def delete_user_from_cas(sender, instance, *args, **kwargs):
         'users/{id}'.format(id=instance.id), 'DELETE')
 
     if not status == 204:
-        raise CASException(status, data)
+        raise CASUnexpectedStatusCode(status, data)
 
 
 @receiver(pre_save, sender=KagisoUser)

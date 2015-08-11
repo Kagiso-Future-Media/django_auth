@@ -6,7 +6,7 @@ class CASTimeout(Exception):
     pass
 
 
-class CASException(Exception):
+class CASUnexpectedStatusCode(Exception):
 
     def __init__(self, status_code, json):
         message = 'Status: {0}.\nJson: {1}'.format(status_code, json)
