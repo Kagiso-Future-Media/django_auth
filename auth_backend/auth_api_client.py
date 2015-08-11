@@ -1,9 +1,10 @@
 import json
 import logging
 
-from requests import request
+import requests
 
 from . import settings
+from .exceptions import CASNetworkError, CASTimeout
 
 logger = logging.getLogger('django')
 
@@ -21,13 +22,18 @@ def call(endpoint, method='GET', payload=None):
         endpoint=endpoint
     )
 
-    response = request(
-        method,
-        url,
-        headers=AUTH_HEADERS,
-        json=payload,
-        timeout=TIMEOUT_IN_SECONDS
-    )
+    try:
+        response = requests.request(
+            method,
+            url,
+            headers=AUTH_HEADERS,
+            json=payload,
+            timeout=TIMEOUT_IN_SECONDS
+        )
+    except requests.exceptions.ConnectionError as e:
+        raise CASNetworkError from e
+    except requests.exceptions.Timeout as e:
+        raise CASTimeout from e
 
     logger.debug('method={0}'.format(method))
     logger.debug('url={0}'.format(url))

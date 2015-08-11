@@ -1,3 +1,11 @@
+class CASNetworkError(Exception):
+    pass
+
+
+class CASTimeout(Exception):
+    pass
+
+
 class CASException(Exception):
 
     def __init__(self, status_code, json):
