@@ -195,6 +195,63 @@ class KagisoUserTest(TestCase):
         assert result.modified == parser.parse(api_data['modified'])
 
     @responses.activate
+    def test_update_syncs_if_user_doesnt_exist_on_cas(self):
+        # ------------------------
+        # -------Arrange----------
+        # ------------------------
+        post_url, _ = mocks.mock_out_post_users(1, 'test@email.com')
+
+        user = mommy.make(models.KagisoUser, id=None)
+
+        email = 'test@email.com'
+        data = {
+            'first_name': 'Fred',
+            'last_name': 'Smith',
+            'is_staff': True,
+            'is_superuser': True,
+            'profile': {
+                'age': 22,
+            }
+        }
+
+        put_url, api_data = mocks.mock_out_put_users(
+            1,
+            email,
+            status=404,
+        )
+        post_url, _ = mocks.mock_out_post_users(2, 'test@email.com', **data)
+
+        # ------------------------
+        # -------Act--------------
+        # ------------------------
+
+        user.email = email
+        user.first_name = data['first_name']
+        user.last_name = data['last_name']
+        user.is_staff = data['is_staff']
+        user.is_superuser = data['is_superuser']
+        user.profile = data['profile']
+        user.save()
+
+        # ------------------------
+        # -------Assert----------
+        # ------------------------
+        result = models.KagisoUser.objects.get(id=user.id)
+
+        assert len(responses.calls) == 3
+        last_api_call = responses.calls[-1].request
+        assert last_api_call.method == 'POST'
+
+        assert result.id == api_data['id']
+        assert result.email == api_data['email']
+        assert result.first_name == api_data['first_name']
+        assert result.last_name == api_data['last_name']
+        assert result.is_staff == api_data['is_staff']
+        assert result.is_superuser == api_data['is_superuser']
+        assert result.profile == api_data['profile']
+        assert result.modified == parser.parse(api_data['modified'])
+
+    @responses.activate
     def test_update_invalid_status_code_raises(self):
         mocks.mock_out_post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)

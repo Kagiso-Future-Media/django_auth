@@ -136,16 +136,21 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         status, data = auth_api_client.call(
             'users/{id}'.format(id=self.id), 'PUT', payload)
 
-        if not status == 200:
+        if status == 200:
+            self.email = data['email']
+            self.first_name = data['first_name']
+            self.last_name = data['last_name']
+            self.is_staff = data['is_staff']
+            self.is_superuser = data['is_superuser']
+            self.profile = data['profile']
+            self.modified = parser.parse(data['modified'])
+        elif status == 404:
+            # It is possible that a user exists locally but not on CAS
+            # eg. when converting an existing app to use CAS
+            # so on update if the user is not found, then create a CAS user
+            self._create_user_in_db_and_cas()
+        else:
             raise CASUnexpectedStatusCode(status, data)
-
-        self.email = data['email']
-        self.first_name = data['first_name']
-        self.last_name = data['last_name']
-        self.is_staff = data['is_staff']
-        self.is_superuser = data['is_superuser']
-        self.profile = data['profile']
-        self.modified = parser.parse(data['modified'])
 
     def __str__(self):
         return self.email  # pragma: no cover
