@@ -156,7 +156,10 @@ def delete_user_from_cas(sender, instance, *args, **kwargs):
     status, data = auth_api_client.call(
         'users/{id}'.format(id=instance.id), 'DELETE')
 
-    if not status == 204:
+    # It is possible but unlikely that a user exists locally but not on CAS
+    # eg. when converting an existing app to use CAS
+    # So if not found on CAS just proceed to delete locally
+    if status not in (204, 404):
         raise CASUnexpectedStatusCode(status, data)
 
 
