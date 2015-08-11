@@ -12,6 +12,7 @@ AUTH_HEADERS = {
     'SOURCE-ID': settings.CAS_SOURCE_ID,
 }
 BASE_URL = settings.CAS_BASE_URL
+TIMEOUT_IN_SECONDS = 3
 
 
 def call(endpoint, method='GET', payload=None):
@@ -26,7 +27,12 @@ def call(endpoint, method='GET', payload=None):
     url = '{base_url}/{endpoint}/.json'.format(
         base_url=BASE_URL, endpoint=endpoint)
 
-    request = fn(url, headers=AUTH_HEADERS, json=payload)
+    request = fn(
+        url,
+        headers=AUTH_HEADERS,
+        json=payload,
+        timeout=TIMEOUT_IN_SECONDS
+    )
 
     logger.debug('method={0}'.format(method))
     logger.debug('url={0}'.format(url))
