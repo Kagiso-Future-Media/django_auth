@@ -1,7 +1,7 @@
 import json
 import logging
 
-import requests
+from requests import request
 
 from . import settings
 
@@ -16,18 +16,13 @@ TIMEOUT_IN_SECONDS = 3
 
 
 def call(endpoint, method='GET', payload=None):
-    fn = requests.get
-    if method == 'POST':
-        fn = requests.post
-    elif method == 'PUT':
-        fn = requests.put
-    elif method == 'DELETE':
-        fn = requests.delete
-
     url = '{base_url}/{endpoint}/.json'.format(
-        base_url=BASE_URL, endpoint=endpoint)
+        base_url=BASE_URL,
+        endpoint=endpoint
+    )
 
-    request = fn(
+    response = request(
+        method,
         url,
         headers=AUTH_HEADERS,
         json=payload,
@@ -42,9 +37,9 @@ def call(endpoint, method='GET', payload=None):
 
     json_data = {}
     try:
-        json_data = request.json()
+        json_data = response.json()
     except ValueError:
         # Requests chokes on empty body
         pass
 
-    return request.status_code, json_data
+    return response.status_code, json_data
