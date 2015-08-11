@@ -106,17 +106,20 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
         status, data = auth_api_client.call('users', 'POST', payload)
 
-        if not status == 201:
+        if status not in (201, 409):
             raise CASUnexpectedStatusCode(status, data)
 
+        # 409-Conflict means that the user already exists in CAS
+        # Set the user's data to what CAS returns.
+        # CAS data takes precedence.
         self.id = data['id']
         self.email = data['email']
-        self.first_name = data['first_name']
-        self.last_name = data['last_name']
-        self.is_staff = data['is_staff']
-        self.is_superuser = data['is_superuser']
-        self.profile = data['profile']
-        self.confirmation_token = data['confirmation_token']
+        self.first_name = data.get('first_name', self.first_name)
+        self.last_name = data.get('last_name', self.last_name)
+        self.is_staff = data.get('is_staff', self.is_staff)
+        self.is_superuser = data.get('is_superuser', self.is_superuser)
+        self.profile = data.get('profile', self.profile)
+        self.confirmation_token = data.get('confirmation_token')
         self.date_joined = parser.parse(data['created'])
         self.modified = parser.parse(data['modified'])
 

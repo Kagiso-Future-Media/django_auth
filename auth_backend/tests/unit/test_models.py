@@ -75,6 +75,57 @@ class KagisoUserTest(TestCase):
         assert result.modified == parser.parse(api_data['modified'])
 
     @responses.activate
+    def test_create_syncs_if_user_exists_on_cas(self):
+        # ------------------------
+        # -------Arrange----------
+        # ------------------------
+
+        email = 'test@email.com'
+        data = {
+            'first_name': 'Fred',
+            'last_name': 'Smith',
+            'is_staff': True,
+            'is_superuser': True,
+            'profile': {
+                'age': 22,
+            }
+        }
+
+        url, api_data = mocks.mock_out_post_users(
+            1,
+            email,
+            status=409,
+            **data
+        )
+        # ------------------------
+        # -------Act--------------
+        # ------------------------
+
+        user = mommy.make(
+            models.KagisoUser,
+            id=None,
+            email=email,
+        )
+
+        # ------------------------
+        # -------Assert----------
+        # ------------------------
+        result = models.KagisoUser.objects.get(id=user.id)
+
+        assert len(responses.calls) == 1
+        assert responses.calls[0].request.url == url
+
+        assert result.id == api_data['id']
+        assert result.email == api_data['email']
+        assert result.first_name == api_data['first_name']
+        assert result.last_name == api_data['last_name']
+        assert result.is_staff == api_data['is_staff']
+        assert result.is_superuser == api_data['is_superuser']
+        assert result.profile == api_data['profile']
+        assert result.date_joined == parser.parse(api_data['created'])
+        assert result.modified == parser.parse(api_data['modified'])
+
+    @responses.activate
     def test_create_invalid_status_code_raises(self):
         email = 'test@email.com'
         mocks.mock_out_post_users(1, email, status=500)
