@@ -4,6 +4,7 @@ import logging
 import requests
 
 from . import settings
+from .exceptions import CASNetworkError, CASTimeout
 
 logger = logging.getLogger('django')
 
@@ -12,21 +13,27 @@ AUTH_HEADERS = {
     'SOURCE-ID': settings.CAS_SOURCE_ID,
 }
 BASE_URL = settings.CAS_BASE_URL
+TIMEOUT_IN_SECONDS = 3
 
 
 def call(endpoint, method='GET', payload=None):
-    fn = requests.get
-    if method == 'POST':
-        fn = requests.post
-    elif method == 'PUT':
-        fn = requests.put
-    elif method == 'DELETE':
-        fn = requests.delete
-
     url = '{base_url}/{endpoint}/.json'.format(
-        base_url=BASE_URL, endpoint=endpoint)
+        base_url=BASE_URL,
+        endpoint=endpoint
+    )
 
-    request = fn(url, headers=AUTH_HEADERS, json=payload)
+    try:
+        response = requests.request(
+            method,
+            url,
+            headers=AUTH_HEADERS,
+            json=payload,
+            timeout=TIMEOUT_IN_SECONDS
+        )
+    except requests.exceptions.ConnectionError as e:
+        raise CASNetworkError from e
+    except requests.exceptions.Timeout as e:
+        raise CASTimeout from e
 
     logger.debug('method={0}'.format(method))
     logger.debug('url={0}'.format(url))
@@ -36,9 +43,9 @@ def call(endpoint, method='GET', payload=None):
 
     json_data = {}
     try:
-        json_data = request.json()
+        json_data = response.json()
     except ValueError:
         # Requests chokes on empty body
         pass
 
-    return request.status_code, json_data
+    return response.status_code, json_data
