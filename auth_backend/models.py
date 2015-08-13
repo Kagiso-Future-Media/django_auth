@@ -93,6 +93,18 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
         return True
 
+    def create_from_cas_data(self, data):
+        self.id = data['id']
+        self.email = data['email']
+        self.first_name = data.get('first_name', self.first_name)
+        self.last_name = data.get('last_name', self.last_name)
+        self.is_staff = data.get('is_staff', self.is_staff)
+        self.is_superuser = data.get('is_superuser', self.is_superuser)
+        self.profile = data.get('profile', self.profile)
+        self.confirmation_token = data.get('confirmation_token')
+        self.date_joined = parser.parse(data['created'])
+        self.modified = parser.parse(data['modified'])
+
     def _create_user_in_db_and_cas(self):
         payload = {
             'email': self.email,
@@ -111,17 +123,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
         # 409-Conflict means that the user already exists in CAS
         # Set the user's data to what CAS returns.
-        # CAS data takes precedence.
-        self.id = data['id']
-        self.email = data['email']
-        self.first_name = data.get('first_name', self.first_name)
-        self.last_name = data.get('last_name', self.last_name)
-        self.is_staff = data.get('is_staff', self.is_staff)
-        self.is_superuser = data.get('is_superuser', self.is_superuser)
-        self.profile = data.get('profile', self.profile)
-        self.confirmation_token = data.get('confirmation_token')
-        self.date_joined = parser.parse(data['created'])
-        self.modified = parser.parse(data['modified'])
+        self.create_from_cas_data(data)
 
     def _update_user_in_cas(self):
         payload = {

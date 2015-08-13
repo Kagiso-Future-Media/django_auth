@@ -105,16 +105,29 @@ def mock_out_post_reset_password(id, status=200):
     return url
 
 
-def mock_out_post_sessions(status):
+def mock_out_post_sessions(status=200, **kwargs):
     url = 'https://auth.kagiso.io/api/v1/sessions/.json'
+    data = {
+        'id': kwargs.get('id', 1),
+        'email': kwargs.get('email'),
+        'first_name': kwargs.get('first_name', ''),
+        'last_name': kwargs.get('last_name', ''),
+        'is_staff': kwargs.get('is_staff', False),
+        'is_superuser': kwargs.get('is_superuser', False),
+        'email_confirmed': None,
+        'profile': kwargs.get('profile'),
+        'created': '2015-04-21T08:18:30.368602Z',
+        'modified': '2015-04-21T08:18:30.374410Z'
+    }
 
     responses.add(
         responses.POST,
         url,
+        body=json.dumps(data),
         status=status
     )
 
-    return url
+    return url, data
 
 
 def mock_out_delete_sessions(id, status=200):

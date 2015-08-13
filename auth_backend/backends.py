@@ -1,8 +1,9 @@
 from django.contrib.auth.backends import ModelBackend
+from django.db.models.signals import pre_save
 
 from . import auth_api_client
 from .exceptions import CASUnexpectedStatusCode
-from .models import KagisoUser
+from .models import KagisoUser, save_user_to_cas
 
 
 class KagisoBackend(ModelBackend):
@@ -16,10 +17,7 @@ class KagisoBackend(ModelBackend):
     #  credentials = {'email': 'test@kagiso.io, 'password': 'open'}
     def authenticate(self, email=None, username=None, password=None, **kwargs):
         email = username if not email else email
-        user = KagisoUser.objects.filter(email=email).first()
-
-        if not user:
-            return
+        existing_user = KagisoUser.objects.filter(email=email).first()
 
         payload = {
             'email': email,
@@ -40,4 +38,15 @@ class KagisoBackend(ModelBackend):
             raise CASUnexpectedStatusCode(status, data)
 
         if status == 200:
-            return user
+            if not existing_user:
+                try:
+                    # Do not on save sync to CAS, as we just got the user's
+                    # data from CAS, and nothing has changed in the interim
+                    pre_save.disconnect(save_user_to_cas, sender=KagisoUser)
+                    existing_user = KagisoUser()
+                    existing_user.create_from_cas_data(data)
+                    existing_user.save()
+                finally:
+                    pre_save.connect(save_user_to_cas, sender=KagisoUser)
+
+            return existing_user
