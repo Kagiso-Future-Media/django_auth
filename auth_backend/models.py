@@ -138,11 +138,11 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
         if status == 200:
             self.email = data['email']
-            self.first_name = data['first_name']
-            self.last_name = data['last_name']
-            self.is_staff = data['is_staff']
-            self.is_superuser = data['is_superuser']
-            self.profile = data['profile']
+            self.first_name = data.get('first_name')
+            self.last_name = data.get('last_name')
+            self.is_staff = data.get('is_staff')
+            self.is_superuser = data.get('is_superuser')
+            self.profile = data.get('profile')
             self.modified = parser.parse(data['modified'])
         elif status == 404:
             # It is possible that a user exists locally but not on CAS
