@@ -50,7 +50,7 @@ class KagisoBackend(ModelBackend):
                     pre_save.disconnect(save_user_to_cas, sender=KagisoUser)
                     existing_user = KagisoUser(cas_credentials)
                     existing_user.set_password(password)
-                    existing_user.create_from_cas_data(data)
+                    existing_user.build_from_cas_data(data)
                     existing_user.save()
                 finally:
                     pre_save.connect(save_user_to_cas, sender=KagisoUser)

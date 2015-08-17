@@ -103,7 +103,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
         return True
 
-    def create_from_cas_data(self, data):
+    def build_from_cas_data(self, data):
         self.id = data['id']
         self.email = data['email']
         self.first_name = data.get('first_name', self.first_name)
@@ -133,7 +133,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
         # 409-Conflict means that the user already exists in CAS
         # Set the user's data to what CAS returns.
-        self.create_from_cas_data(data)
+        self.build_from_cas_data(data)
 
     def _update_user_in_cas(self):
         payload = {
