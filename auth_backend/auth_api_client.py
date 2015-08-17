@@ -48,7 +48,7 @@ class AuthApiClient:
 
         logger.debug('method={0}'.format(method))
         logger.debug('url={0}'.format(url))
-        logger.debug('headers={0}'.format(self.AUTH_HEADERS))
+        logger.debug('headers={0}'.format(auth_headers))
         logger.debug('payload={0}'.format(payload))
         logger.debug('json={0}'.format(json.dumps(payload)))
 
