@@ -6,46 +6,57 @@ import requests
 from . import settings
 from .exceptions import CASNetworkError, CASTimeout
 
+
 logger = logging.getLogger('django')
 
-AUTH_HEADERS = {
-    'AUTHORIZATION': 'Token {0}'.format(settings.CAS_TOKEN),
-    'SOURCE-ID': settings.CAS_SOURCE_ID,
-}
-BASE_URL = settings.CAS_BASE_URL
-TIMEOUT_IN_SECONDS = 3
 
+class AuthApiClient:
 
-def call(endpoint, method='GET', payload=None):
-    url = '{base_url}/{endpoint}/.json'.format(
-        base_url=BASE_URL,
-        endpoint=endpoint
-    )
+    BASE_URL = settings.CAS_BASE_URL
+    TIMEOUT_IN_SECONDS = 3
 
-    try:
-        response = requests.request(
-            method,
-            url,
-            headers=AUTH_HEADERS,
-            json=payload,
-            timeout=TIMEOUT_IN_SECONDS
+    def __init__(self, cas_credentials=None):
+        if cas_credentials is None:
+            self._cas_token = settings.CAS_TOKEN
+            self._cas_source_id = settings.CAS_SOURCE_ID
+        else:
+            self._cas_token = cas_credentials['cas_token']
+            self._cas_source_id = cas_credentials['cas_source_id']
+
+    def call(self, endpoint, method='GET', payload=None):
+        auth_headers = {
+            'AUTHORIZATION': 'Token {0}'.format(self._cas_token),
+            'SOURCE-ID': self._cas_source_id,
+        }
+        url = '{base_url}/{endpoint}/.json'.format(
+            base_url=self.BASE_URL,
+            endpoint=endpoint
         )
-    except requests.exceptions.ConnectionError as e:
-        raise CASNetworkError from e
-    except requests.exceptions.Timeout as e:
-        raise CASTimeout from e
 
-    logger.debug('method={0}'.format(method))
-    logger.debug('url={0}'.format(url))
-    logger.debug('headers={0}'.format(AUTH_HEADERS))
-    logger.debug('payload={0}'.format(payload))
-    logger.debug('json={0}'.format(json.dumps(payload)))
+        try:
+            response = requests.request(
+                method,
+                url,
+                headers=auth_headers,
+                json=payload,
+                timeout=self.TIMEOUT_IN_SECONDS
+            )
+        except requests.exceptions.ConnectionError as e:
+            raise CASNetworkError from e
+        except requests.exceptions.Timeout as e:
+            raise CASTimeout from e
 
-    json_data = {}
-    try:
-        json_data = response.json()
-    except ValueError:
-        # Requests chokes on empty body
-        pass
+        logger.debug('method={0}'.format(method))
+        logger.debug('url={0}'.format(url))
+        logger.debug('headers={0}'.format(auth_headers))
+        logger.debug('payload={0}'.format(payload))
+        logger.debug('json={0}'.format(json.dumps(payload)))
 
-    return response.status_code, json_data
+        json_data = {}
+        try:
+            json_data = response.json()
+        except ValueError:
+            # Requests chokes on empty body
+            pass
+
+        return response.status_code, json_data

@@ -6,7 +6,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from jsonfield import JSONField
 
-from . import auth_api_client
+from .auth_api_client import AuthApiClient
 from .exceptions import CASUnexpectedStatusCode
 from .managers import AuthManager
 
@@ -29,6 +29,16 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
     raw_password = None
 
     objects = AuthManager()
+
+    def __init__(self, *args, **kwargs):
+        self.cas_credentials = kwargs.get('cas_credentials')
+        self._auth_api_client = AuthApiClient(self.cas_credentials)
+
+        if self.cas_credentials:
+            # Django crashes if non-model fields are passed to init
+            del kwargs['cas_credentials']
+
+        super().__init__(*args, **kwargs)
 
     def get_full_name(self):
         return self.email
@@ -53,7 +63,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
     def confirm_email(self, confirmation_token):
         payload = {'confirmation_token': confirmation_token}
         endpoint = 'users/{id}/confirm_email'.format(id=self.id)
-        status, data = auth_api_client.call(endpoint, 'POST', payload)
+        status, data = self._auth_api_client.call(endpoint, 'POST', payload)
 
         if not status == 200:
             raise CASUnexpectedStatusCode(status, data)
@@ -64,7 +74,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
     def generate_reset_password_token(self):
         endpoint = 'users/{id}/reset_password'.format(id=self.id)
-        status, data = auth_api_client.call(endpoint, 'GET')
+        status, data = self._auth_api_client.call(endpoint, 'GET')
 
         if not status == 200:
             raise CASUnexpectedStatusCode(status, data)
@@ -77,7 +87,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             'password': password,
         }
         endpoint = 'users/{id}/reset_password'.format(id=self.id)
-        status, data = auth_api_client.call(endpoint, 'POST', payload)
+        status, data = self._auth_api_client.call(endpoint, 'POST', payload)
 
         if not status == 200:
             raise CASUnexpectedStatusCode(status, data)
@@ -86,12 +96,24 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
     def record_sign_out(self):
         endpoint = 'sessions/{id}'.format(id=self.id)
-        status, data = auth_api_client.call(endpoint, 'DELETE')
+        status, data = self._auth_api_client.call(endpoint, 'DELETE')
 
         if not status == 200:
             raise CASUnexpectedStatusCode(status, data)
 
         return True
+
+    def build_from_cas_data(self, data):
+        self.id = data['id']
+        self.email = data['email']
+        self.first_name = data.get('first_name', self.first_name)
+        self.last_name = data.get('last_name', self.last_name)
+        self.is_staff = data.get('is_staff', self.is_staff)
+        self.is_superuser = data.get('is_superuser', self.is_superuser)
+        self.profile = data.get('profile', self.profile)
+        self.confirmation_token = data.get('confirmation_token')
+        self.date_joined = parser.parse(data['created'])
+        self.modified = parser.parse(data['modified'])
 
     def _create_user_in_db_and_cas(self):
         payload = {
@@ -104,24 +126,14 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             'password': self.raw_password,
         }
 
-        status, data = auth_api_client.call('users', 'POST', payload)
+        status, data = self._auth_api_client.call('users', 'POST', payload)
 
         if status not in (201, 409):
             raise CASUnexpectedStatusCode(status, data)
 
         # 409-Conflict means that the user already exists in CAS
         # Set the user's data to what CAS returns.
-        # CAS data takes precedence.
-        self.id = data['id']
-        self.email = data['email']
-        self.first_name = data.get('first_name', self.first_name)
-        self.last_name = data.get('last_name', self.last_name)
-        self.is_staff = data.get('is_staff', self.is_staff)
-        self.is_superuser = data.get('is_superuser', self.is_superuser)
-        self.profile = data.get('profile', self.profile)
-        self.confirmation_token = data.get('confirmation_token')
-        self.date_joined = parser.parse(data['created'])
-        self.modified = parser.parse(data['modified'])
+        self.build_from_cas_data(data)
 
     def _update_user_in_cas(self):
         payload = {
@@ -133,7 +145,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             'profile': self.profile,
         }
 
-        status, data = auth_api_client.call(
+        status, data = self._auth_api_client.call(
             'users/{id}'.format(id=self.id), 'PUT', payload)
 
         if status == 200:
@@ -158,7 +170,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
 @receiver(pre_delete, sender=KagisoUser)
 def delete_user_from_cas(sender, instance, *args, **kwargs):
-    status, data = auth_api_client.call(
+    status, data = instance._auth_api_client.call(
         'users/{id}'.format(id=instance.id), 'DELETE')
 
     # It is possible but unlikely that a user exists locally but not on CAS
