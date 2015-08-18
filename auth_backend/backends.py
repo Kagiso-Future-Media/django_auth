@@ -42,7 +42,7 @@ class KagisoBackend(ModelBackend):
 
         if status == 200:
             if existing_user:
-                existing_user.cas_credentials = cas_credentials
+                existing_user.override_cas_credentials(cas_credentials)
             else:
                 try:
                     # Do not on save sync to CAS, as we just got the user's
