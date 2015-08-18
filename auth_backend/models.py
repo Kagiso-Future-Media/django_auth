@@ -31,14 +31,12 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
     objects = AuthManager()
 
     def __init__(self, *args, **kwargs):
-        self.cas_credentials = kwargs.get('cas_credentials')
-        self._auth_api_client = AuthApiClient(self.cas_credentials)
-
-        if self.cas_credentials:
-            # Django crashes if non-model fields are passed to init
-            del kwargs['cas_credentials']
-
+        self._auth_api_client = AuthApiClient()
         super().__init__(*args, **kwargs)
+
+    def override_cas_credentials(self, cas_credentials):
+        self.cas_credentials = cas_credentials
+        self._auth_api_client = AuthApiClient(self.cas_credentials)
 
     def get_full_name(self):
         return self.email
