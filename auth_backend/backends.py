@@ -48,7 +48,7 @@ class KagisoBackend(ModelBackend):
                     # Do not on save sync to CAS, as we just got the user's
                     # data from CAS, and nothing has changed in the interim
                     pre_save.disconnect(save_user_to_cas, sender=KagisoUser)
-                    existing_user = KagisoUser(cas_credentials)
+                    existing_user = KagisoUser()
                     existing_user.set_password(password)
                     existing_user.build_from_cas_data(data)
                     existing_user.save()
