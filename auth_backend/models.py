@@ -113,6 +113,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         self.confirmation_token = data.get('confirmation_token')
         self.date_joined = parser.parse(data['created'])
         self.modified = parser.parse(data['modified'])
+
     def _create_user_in_db_and_cas(self):
         payload = {
             'email': self.email,

@@ -96,7 +96,7 @@ class KagisoUserTest(TestCase):
         )
 
         with pytest.raises(IntegrityError):
-            user = mommy.make(
+            mommy.make(
                 models.KagisoUser,
                 id=None,
                 email=email,
