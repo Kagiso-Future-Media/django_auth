@@ -1,12 +1,16 @@
-class CASNetworkError(Exception):
+class CASError(Exception):
     pass
 
 
-class CASTimeout(Exception):
+class CASNetworkError(CASError):
     pass
 
 
-class CASUnexpectedStatusCode(Exception):
+class CASTimeout(CASError):
+    pass
+
+
+class CASUnexpectedStatusCode(CASError):
 
     def __init__(self, status_code, json):
         message = 'Status: {0}.\nJson: {1}'.format(status_code, json)
