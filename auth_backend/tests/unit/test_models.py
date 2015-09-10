@@ -1,4 +1,5 @@
 from dateutil import parser
+from django.db.utils import IntegrityError
 from django.test import TestCase
 from model_mommy import mommy
 import pytest
@@ -75,11 +76,7 @@ class KagisoUserTest(TestCase):
         assert result.modified == parser.parse(api_data['modified'])
 
     @responses.activate
-    def test_create_syncs_if_user_exists_on_cas(self):
-        # ------------------------
-        # -------Arrange----------
-        # ------------------------
-
+    def test_create_raises_if_user_exists_on_cas(self):
         email = 'test@email.com'
         data = {
             'first_name': 'Fred',
@@ -97,33 +94,13 @@ class KagisoUserTest(TestCase):
             status=409,
             **data
         )
-        # ------------------------
-        # -------Act--------------
-        # ------------------------
 
-        user = mommy.make(
-            models.KagisoUser,
-            id=None,
-            email=email,
-        )
-
-        # ------------------------
-        # -------Assert----------
-        # ------------------------
-        result = models.KagisoUser.objects.get(id=user.id)
-
-        assert len(responses.calls) == 1
-        assert responses.calls[0].request.url == url
-
-        assert result.id == api_data['id']
-        assert result.email == api_data['email']
-        assert result.first_name == api_data['first_name']
-        assert result.last_name == api_data['last_name']
-        assert result.is_staff == api_data['is_staff']
-        assert result.is_superuser == api_data['is_superuser']
-        assert result.profile == api_data['profile']
-        assert result.date_joined == parser.parse(api_data['created'])
-        assert result.modified == parser.parse(api_data['modified'])
+        with pytest.raises(IntegrityError):
+            user = mommy.make(
+                models.KagisoUser,
+                id=None,
+                email=email,
+            )
 
     @responses.activate
     def test_create_invalid_status_code_raises(self):

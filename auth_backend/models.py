@@ -2,6 +2,7 @@ from dateutil import parser
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.db.models.signals import pre_delete, pre_save
+from django.db.utils import IntegrityError
 from django.dispatch import receiver
 from django.utils import timezone
 from jsonfield import JSONField
@@ -112,7 +113,6 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         self.confirmation_token = data.get('confirmation_token')
         self.date_joined = parser.parse(data['created'])
         self.modified = parser.parse(data['modified'])
-
     def _create_user_in_db_and_cas(self):
         payload = {
             'email': self.email,
@@ -130,7 +130,9 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             raise CASUnexpectedStatusCode(status, data)
 
         # 409-Conflict means that the user already exists in CAS
-        # Set the user's data to what CAS returns.
+        if status == 409:
+            raise IntegrityError('User already exists')
+
         self.build_from_cas_data(data)
 
     def _update_user_in_cas(self):
