@@ -1,3 +1,4 @@
+
 import json
 
 import responses
@@ -65,8 +66,8 @@ def mock_out_delete_users(id, status=204):
     return url
 
 
-def mock_out_post_confirm_email(id, status=200):
-    url = 'https://auth.kagiso.io/api/v1/users/{id}/confirm_email/.json'.format(id=id)  # noqa
+def mock_out_post_confirm_email(status=200):
+    url = 'https://auth.kagiso.io/api/v1/confirm_email/.json'  # noqa
 
     responses.add(
         responses.POST,
@@ -77,8 +78,8 @@ def mock_out_post_confirm_email(id, status=200):
     return url
 
 
-def mock_out_get_reset_password(id, status=200):
-    url = 'https://auth.kagiso.io/api/v1/users/{id}/reset_password/.json'.format(id=id)  # noqa
+def mock_out_get_reset_password(email, status=200):
+    url = 'https://auth.kagiso.io/api/v1/reset_password/{email}/.json'.format(email=email)  # noqa
     data = {
         'reset_password_token': 'random_token',
     }
@@ -93,8 +94,8 @@ def mock_out_get_reset_password(id, status=200):
     return url, data
 
 
-def mock_out_post_reset_password(id, status=200):
-    url = 'https://auth.kagiso.io/api/v1/users/{id}/reset_password/.json'.format(id=id)  # noqa
+def mock_out_post_reset_password(email, status=200):
+    url = 'https://auth.kagiso.io/api/v1/reset_password/{email}/.json'.format(email=email)  # noqa
 
     responses.add(
         responses.POST,

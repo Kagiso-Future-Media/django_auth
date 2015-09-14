@@ -61,7 +61,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
     def confirm_email(self, confirmation_token):
         payload = {'confirmation_token': confirmation_token}
-        endpoint = 'users/{id}/confirm_email'.format(id=self.id)
+        endpoint = 'confirm_email'
         status, data = self._auth_api_client.call(endpoint, 'POST', payload)
 
         if not status == 200:
@@ -72,7 +72,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         self.save()
 
     def generate_reset_password_token(self):
-        endpoint = 'users/{id}/reset_password'.format(id=self.id)
+        endpoint = 'reset_password/{email}'.format(email=self.email)
         status, data = self._auth_api_client.call(endpoint, 'GET')
 
         if not status == 200:
@@ -85,7 +85,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             'reset_password_token': reset_password_token,
             'password': password,
         }
-        endpoint = 'users/{id}/reset_password'.format(id=self.id)
+        endpoint = 'reset_password/{email}'.format(email=self.email)
         status, data = self._auth_api_client.call(endpoint, 'POST', payload)
 
         if not status == 200:

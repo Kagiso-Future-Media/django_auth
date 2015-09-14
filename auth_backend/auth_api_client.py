@@ -13,7 +13,7 @@ logger = logging.getLogger('django')
 class AuthApiClient:
 
     BASE_URL = settings.CAS_BASE_URL
-    TIMEOUT_IN_SECONDS = 3
+    TIMEOUT_IN_SECONDS = 6
 
     def __init__(self, cas_credentials=None):
         if cas_credentials is None:

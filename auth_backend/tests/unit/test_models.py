@@ -306,7 +306,7 @@ class KagisoUserTest(TestCase):
             user.email,
             profile=user.profile
         )
-        url = mocks.mock_out_post_confirm_email(user.id)
+        url = mocks.mock_out_post_confirm_email()
 
         user.confirm_email(post_data['confirmation_token'])
 
@@ -328,7 +328,7 @@ class KagisoUserTest(TestCase):
             user.email,
             profile=user.profile
         )
-        mocks.mock_out_post_confirm_email(user.id, status=500)
+        mocks.mock_out_post_confirm_email(status=500)
 
         with pytest.raises(CASUnexpectedStatusCode):
             user.confirm_email(post_data['confirmation_token'])
@@ -364,7 +364,7 @@ class KagisoUserTest(TestCase):
     def test_generate_reset_password_token(self):
         _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        url, data = mocks.mock_out_get_reset_password(user.id)
+        url, data = mocks.mock_out_get_reset_password(user.email)
 
         reset_password_token = user.generate_reset_password_token()
 
@@ -377,7 +377,7 @@ class KagisoUserTest(TestCase):
     def test_generate_reset_password_token_invalid_status_raises(self):
         _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        url, data = mocks.mock_out_get_reset_password(user.id, status=500)
+        url, data = mocks.mock_out_get_reset_password(user.email, status=500)
 
         with pytest.raises(CASUnexpectedStatusCode):
             reset_password_token = user.generate_reset_password_token()
@@ -387,7 +387,7 @@ class KagisoUserTest(TestCase):
     def test_reset_password(self):
         _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        url = mocks.mock_out_post_reset_password(user.id)
+        url = mocks.mock_out_post_reset_password(user.email)
 
         did_password_reset = user.reset_password('new_password', 'test_token')
 
@@ -400,7 +400,7 @@ class KagisoUserTest(TestCase):
     def test_reset_password_invalid_status_code_raises(self):
         _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        mocks.mock_out_post_reset_password(user.id, status=500)
+        mocks.mock_out_post_reset_password(user.email, status=500)
 
         with pytest.raises(CASUnexpectedStatusCode):
             did_password_reset = user.reset_password(
