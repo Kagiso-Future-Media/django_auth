@@ -117,6 +117,7 @@ class KagisoUserTest(TestCase):
         )
         user.set_password('password')
         user.save()
+        user.confirm_email(user.confirmation_token)
 
         # ----- Reset the password -----
         new_password = 'new_password'
