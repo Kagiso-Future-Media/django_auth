@@ -4,7 +4,7 @@ import responses
 
 from . import mocks
 from ...backends import KagisoBackend
-from ...exceptions import CASUnexpectedStatusCode
+from ...exceptions import CASUnexpectedStatusCode, EmailNotConfirmedError
 from ...models import KagisoUser
 
 
@@ -115,3 +115,17 @@ class KagisoBackendTest(TestCase):
         assert responses.calls[1].request.url == url
 
         assert not result
+
+    @responses.activate
+    def test_authenticate_unconfirmed_email_raises(self):
+        email = 'test@email.com'
+        password = 'random'
+        url, api_data = mocks.mock_out_post_users(1, email)
+        KagisoUser.objects.create_user(email, password)
+
+        mocks.mock_out_post_sessions(422)
+
+        backend = KagisoBackend()
+
+        with pytest.raises(EmailNotConfirmedError):
+            backend.authenticate(email=email, password=password)

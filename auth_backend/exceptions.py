@@ -17,3 +17,7 @@ class CASUnexpectedStatusCode(CASError):
         self.status_code = status_code
         self.json = json
         super().__init__(message)
+
+
+class EmailNotConfirmedError(CASError):
+    pass
