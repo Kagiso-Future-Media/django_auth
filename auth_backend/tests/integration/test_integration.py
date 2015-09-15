@@ -1,9 +1,11 @@
 from django.test import TestCase
 from model_mommy import mommy
+import pytest
 
 from . import utils
 from ... import models
 from ...backends import KagisoBackend
+from ...exceptions import EmailNotConfirmedError
 
 
 class KagisoUserTest(TestCase):
@@ -29,6 +31,8 @@ class KagisoUserTest(TestCase):
         user.set_password(password)
         user.save()
 
+        auth_backend = KagisoBackend()
+
         result = models.KagisoUser.objects.get(id=user.id)
 
         assert result.email == user.email
@@ -39,13 +43,19 @@ class KagisoUserTest(TestCase):
         assert not result.confirmation_token
         assert result.profile == profile
 
+        # ----- Unconfirmed users can't sign in -----
+        with pytest.raises(EmailNotConfirmedError):
+            auth_backend.authenticate(
+                email=user.email,
+                password=password
+            )
+
         # ----- Confirm user -----
         assert not user.email_confirmed
         user.confirm_email(user.confirmation_token)
         assert user.email_confirmed
 
         # ----- Can the user sign in? -----
-        auth_backend = KagisoBackend()
         signed_in_user = auth_backend.authenticate(
             email=user.email,
             password=password
