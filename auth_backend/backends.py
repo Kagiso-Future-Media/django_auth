@@ -20,7 +20,6 @@ class KagisoBackend(ModelBackend):
         cas_credentials = kwargs.get('cas_credentials')
 
         email = username if not email else email
-        existing_user = KagisoUser.objects.filter(email=email).first()
 
         payload = {
             'email': email,
@@ -39,17 +38,18 @@ class KagisoBackend(ModelBackend):
         status, data = auth_api_client.call('sessions', 'POST', payload)
 
         if status == 200:
-            if existing_user:
-                existing_user.override_cas_credentials(cas_credentials)
+            local_user = KagisoUser.objects.filter(id=data['id']).first()
+            if local_user:
+                local_user.override_cas_credentials(cas_credentials)
             else:
                 try:
                     # Do not on save sync to CAS, as we just got the user's
                     # data from CAS, and nothing has changed in the interim
                     pre_save.disconnect(save_user_to_cas, sender=KagisoUser)
-                    existing_user = KagisoUser()
-                    existing_user.set_password(password)
-                    existing_user.build_from_cas_data(data)
-                    existing_user.save()
+                    local_user = KagisoUser()
+                    local_user.set_password(password)
+                    local_user.build_from_cas_data(data)
+                    local_user.save()
                 finally:
                     pre_save.connect(save_user_to_cas, sender=KagisoUser)
         elif status == 404:
@@ -59,4 +59,4 @@ class KagisoBackend(ModelBackend):
         else:
             raise CASUnexpectedStatusCode(status, data)
 
-        return existing_user
+        return local_user
