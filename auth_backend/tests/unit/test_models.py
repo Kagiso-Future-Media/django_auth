@@ -343,32 +343,6 @@ class KagisoUserTest(TestCase):
         assert not user.email_confirmed
 
     @responses.activate
-    def test_record_sign_out(self):
-        id = 1
-        _, post_data = mocks.mock_out_post_users(id, 'test@email.com')
-        user = mommy.make(models.KagisoUser, id=None)
-        url = mocks.mock_out_delete_sessions(id)
-
-        did_sign_out = user.record_sign_out()
-
-        assert len(responses.calls) == 2
-        assert responses.calls[1].request.url == url
-
-        assert did_sign_out
-
-    @responses.activate
-    def test_record_sign_out_invalid_status_code_raises(self):
-        id = 1
-        _, post_data = mocks.mock_out_post_users(id, 'test@email.com')
-        user = mommy.make(models.KagisoUser, id=None)
-        mocks.mock_out_delete_sessions(
-            id, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        with pytest.raises(CASUnexpectedStatusCode):
-            did_sign_out = user.record_sign_out()
-            assert not did_sign_out
-
-    @responses.activate
     def test_generate_reset_password_token(self):
         _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
@@ -419,3 +393,29 @@ class KagisoUserTest(TestCase):
             )
 
             assert not did_password_reset
+
+    @responses.activate
+    def test_record_sign_out(self):
+        id = 1
+        _, post_data = mocks.mock_out_post_users(id, 'test@email.com')
+        user = mommy.make(models.KagisoUser, id=None)
+        url = mocks.mock_out_delete_sessions(id)
+
+        did_sign_out = user.record_sign_out()
+
+        assert len(responses.calls) == 2
+        assert responses.calls[1].request.url == url
+
+        assert did_sign_out
+
+    @responses.activate
+    def test_record_sign_out_invalid_status_code_raises(self):
+        id = 1
+        _, post_data = mocks.mock_out_post_users(id, 'test@email.com')
+        user = mommy.make(models.KagisoUser, id=None)
+        mocks.mock_out_delete_sessions(
+            id, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        with pytest.raises(CASUnexpectedStatusCode):
+            did_sign_out = user.record_sign_out()
+            assert not did_sign_out
