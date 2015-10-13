@@ -343,6 +343,32 @@ class KagisoUserTest(TestCase):
         assert not user.email_confirmed
 
     @responses.activate
+    def test_regenerate_confirmation_token(self):
+        _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
+        user = mommy.make(models.KagisoUser, id=None)
+        url, data = mocks.mock_out_get_regenerate_confirmation_token(
+            user.email)
+
+        token = user.regenerate_confirmation_token()
+
+        assert len(responses.calls) == 2
+        assert responses.calls[1].request.url == url
+
+        assert token == data['confirmation_token']
+
+    @responses.activate
+    def test_regenerate_confirmation_token_raises(self):
+        _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
+        user = mommy.make(models.KagisoUser, id=None)
+        url, data = mocks.mock_out_get_regenerate_confirmation_token(
+            user.email,
+            http.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        with pytest.raises(CASUnexpectedStatusCode):
+            token = user.regenerate_confirmation_token()
+            assert token is None
+
+    @responses.activate
     def test_generate_reset_password_token(self):
         _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)

@@ -72,6 +72,16 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         self.email_confirmed = timezone.now()
         self.save()
 
+    def regenerate_confirmation_token(self):
+        endpoint = 'users/{email}/confirmation_token'.format(email=self.email)
+        status, data = self._auth_api_client.call(endpoint, 'GET')
+
+        if not status == http.HTTP_200_OK:
+            raise CASUnexpectedStatusCode(status, data)
+
+        self.confirmation_token = data['confirmation_token']
+        return self.confirmation_token
+
     def generate_reset_password_token(self):
         endpoint = 'reset_password/{email}'.format(email=self.email)
         status, data = self._auth_api_client.call(endpoint, 'GET')

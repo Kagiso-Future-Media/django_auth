@@ -79,6 +79,22 @@ def mock_out_post_confirm_email(status=http.HTTP_200_OK):
     return url
 
 
+def mock_out_get_regenerate_confirmation_token(email, status=http.HTTP_200_OK):
+    url = 'https://auth.kagiso.io/api/v1/users/{email}/confirmation_token/.json'.format(email=email)  # noqa
+    data = {
+        'confirmation_token': 'random_token',
+    }
+
+    responses.add(
+        responses.GET,
+        url,
+        body=json.dumps(data),
+        status=status,
+    )
+
+    return url, data
+
+
 def mock_out_get_reset_password(email, status=http.HTTP_200_OK):
     url = 'https://auth.kagiso.io/api/v1/reset_password/{email}/.json'.format(email=email)  # noqa
     data = {

@@ -55,6 +55,10 @@ class KagisoUserTest(TestCase):
         user.confirm_email(user.confirmation_token)
         assert user.email_confirmed
 
+        # ----- Regenerate confirmation token -----
+        token = user.regenerate_confirmation_token
+        assert token
+
         # ----- Can the user sign in? -----
         signed_in_user = auth_backend.authenticate(
             email=user.email,
