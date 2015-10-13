@@ -3,6 +3,7 @@ import pytest
 import responses
 
 from . import mocks
+from ... import http
 from ...backends import KagisoBackend
 from ...exceptions import CASUnexpectedStatusCode, EmailNotConfirmedError
 from ...models import KagisoUser
@@ -24,7 +25,7 @@ class KagisoBackendTest(TestCase):
         )
         user = KagisoUser.objects.create_user(
             email, password, profile=profile)
-        url, _ = mocks.mock_out_post_sessions(200)
+        url, _ = mocks.mock_out_post_sessions(http.HTTP_200_OK)
 
         backend = KagisoBackend()
         result = backend.authenticate(email=email, password=password)
@@ -51,7 +52,10 @@ class KagisoBackendTest(TestCase):
         }
 
         _, api_data = mocks.mock_out_post_users(1, email)
-        session_url, data = mocks.mock_out_post_sessions(200, **data)
+        session_url, data = mocks.mock_out_post_sessions(
+            http.HTTP_200_OK,
+            **data
+        )
 
         backend = KagisoBackend()
         result = backend.authenticate(email=email, password=password)
@@ -89,7 +93,7 @@ class KagisoBackendTest(TestCase):
         # Unusable password is saved locally for Django compliance
         # It is not used for auth purposes though
         user = KagisoUser.objects.create_user(email, password='unusable')
-        url, data = mocks.mock_out_post_sessions(200)
+        url, data = mocks.mock_out_post_sessions(http.HTTP_200_OK)
 
         backend = KagisoBackend()
         result = backend.authenticate(email=email, strategy=strategy)
@@ -106,7 +110,7 @@ class KagisoBackendTest(TestCase):
         password = 'incorrect'
         mocks.mock_out_post_users(1, email)
         KagisoUser.objects.create_user(email, password)
-        url, data = mocks.mock_out_post_sessions(404)
+        url, data = mocks.mock_out_post_sessions(http.HTTP_404_NOT_FOUND)
 
         backend = KagisoBackend()
         result = backend.authenticate(email=email, password=password)
@@ -123,7 +127,7 @@ class KagisoBackendTest(TestCase):
         url, api_data = mocks.mock_out_post_users(1, email)
         KagisoUser.objects.create_user(email, password)
 
-        mocks.mock_out_post_sessions(422)
+        mocks.mock_out_post_sessions(http.HTTP_422_UNPROCESSABLE_ENTITY)
 
         backend = KagisoBackend()
 

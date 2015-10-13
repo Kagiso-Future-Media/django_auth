@@ -7,6 +7,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from jsonfield import JSONField
 
+from . import http
 from .auth_api_client import AuthApiClient
 from .exceptions import CASUnexpectedStatusCode
 from .managers import AuthManager
@@ -64,7 +65,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         endpoint = 'confirm_email'
         status, data = self._auth_api_client.call(endpoint, 'POST', payload)
 
-        if not status == 200:
+        if not status == http.HTTP_200_OK:
             raise CASUnexpectedStatusCode(status, data)
 
         self.confirmation_token = None
@@ -75,7 +76,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         endpoint = 'reset_password/{email}'.format(email=self.email)
         status, data = self._auth_api_client.call(endpoint, 'GET')
 
-        if not status == 200:
+        if not status == http.HTTP_200_OK:
             raise CASUnexpectedStatusCode(status, data)
 
         return data['reset_password_token']
@@ -88,7 +89,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         endpoint = 'reset_password/{email}'.format(email=self.email)
         status, data = self._auth_api_client.call(endpoint, 'POST', payload)
 
-        if not status == 200:
+        if not status == http.HTTP_200_OK:
             raise CASUnexpectedStatusCode(status, data)
 
         return True
@@ -97,7 +98,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         endpoint = 'sessions/{id}'.format(id=self.id)
         status, data = self._auth_api_client.call(endpoint, 'DELETE')
 
-        if not status == 200:
+        if not status == http.HTTP_200_OK:
             raise CASUnexpectedStatusCode(status, data)
 
         return True
@@ -127,11 +128,11 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
         status, data = self._auth_api_client.call('users', 'POST', payload)
 
-        if status not in (201, 409):
+        if status not in (http.HTTP_201_CREATED, http.HTTP_409_CONFLICT):
             raise CASUnexpectedStatusCode(status, data)
 
         # 409-Conflict means that the user already exists in CAS
-        if status == 409:
+        if status == http.HTTP_409_CONFLICT:
             raise IntegrityError('User already exists')
 
         self.build_from_cas_data(data)
@@ -149,7 +150,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         status, data = self._auth_api_client.call(
             'users/{id}'.format(id=self.id), 'PUT', payload)
 
-        if status == 200:
+        if status == http.HTTP_200_OK:
             self.email = data['email']
             self.first_name = data.get('first_name')
             self.last_name = data.get('last_name')
@@ -157,7 +158,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             self.is_superuser = data.get('is_superuser')
             self.profile = data.get('profile')
             self.modified = parser.parse(data['modified'])
-        elif status == 404:
+        elif status == http.HTTP_404_NOT_FOUND:
             # It is possible that a user exists locally but not on CAS
             # eg. when converting an existing app to use CAS
             # so on update if the user is not found, then create a CAS user
@@ -177,7 +178,7 @@ def delete_user_from_cas(sender, instance, *args, **kwargs):
     # It is possible but unlikely that a user exists locally but not on CAS
     # eg. when converting an existing app to use CAS
     # So if not found on CAS just proceed to delete locally
-    if status not in (204, 404):
+    if status not in (http.HTTP_204_NO_CONTENT, http.HTTP_404_NOT_FOUND):
         raise CASUnexpectedStatusCode(status, data)
 
 
