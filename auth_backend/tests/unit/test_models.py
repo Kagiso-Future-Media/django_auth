@@ -27,7 +27,7 @@ class KagisoUserTest(TestCase):
             'age': 22
         }
 
-        url, api_data = mocks.mock_out_post_users(
+        url, api_data = mocks.post_users(
             1,
             email,
             first_name=first_name,
@@ -88,7 +88,7 @@ class KagisoUserTest(TestCase):
             }
         }
 
-        url, api_data = mocks.mock_out_post_users(
+        url, api_data = mocks.post_users(
             1,
             email,
             status=http.HTTP_409_CONFLICT,
@@ -105,7 +105,7 @@ class KagisoUserTest(TestCase):
     @responses.activate
     def test_create_invalid_status_code_raises(self):
         email = 'test@email.com'
-        mocks.mock_out_post_users(
+        mocks.post_users(
             1,
             email,
             status=http.HTTP_500_INTERNAL_SERVER_ERROR
@@ -123,7 +123,7 @@ class KagisoUserTest(TestCase):
         # ------------------------
         # -------Arrange----------
         # ------------------------
-        mocks.mock_out_post_users(1, 'test@email.com')
+        mocks.post_users(1, 'test@email.com')
 
         user = mommy.make(models.KagisoUser, id=None)
 
@@ -136,7 +136,7 @@ class KagisoUserTest(TestCase):
             'age': 22
         }
 
-        url, api_data = mocks.mock_out_put_users(
+        url, api_data = mocks.put_users(
             1,
             email,
             first_name=first_name,
@@ -180,7 +180,7 @@ class KagisoUserTest(TestCase):
         # ------------------------
         # -------Arrange----------
         # ------------------------
-        post_url, _ = mocks.mock_out_post_users(1, 'test@email.com')
+        post_url, _ = mocks.post_users(1, 'test@email.com')
 
         user = mommy.make(models.KagisoUser, id=None)
 
@@ -195,12 +195,12 @@ class KagisoUserTest(TestCase):
             }
         }
 
-        put_url, api_data = mocks.mock_out_put_users(
+        put_url, api_data = mocks.put_users(
             1,
             email,
             status=http.HTTP_404_NOT_FOUND,
         )
-        post_url, _ = mocks.mock_out_post_users(2, 'test@email.com', **data)
+        post_url, _ = mocks.post_users(2, 'test@email.com', **data)
 
         # ------------------------
         # -------Act--------------
@@ -234,10 +234,10 @@ class KagisoUserTest(TestCase):
 
     @responses.activate
     def test_update_invalid_status_code_raises(self):
-        mocks.mock_out_post_users(1, 'test@email.com')
+        mocks.post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
         email = 'test@email.com'
-        url, api_data = mocks.mock_out_put_users(
+        url, api_data = mocks.put_users(
             1, email, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
 
         user.email = email
@@ -247,9 +247,9 @@ class KagisoUserTest(TestCase):
 
     @responses.activate
     def test_delete(self):
-        mocks.mock_out_post_users(1, 'test@email.com')
+        mocks.post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        url = mocks.mock_out_delete_users(user.id)
+        url = mocks.delete_users(user.id)
 
         user.delete()
 
@@ -263,9 +263,9 @@ class KagisoUserTest(TestCase):
 
     @responses.activate
     def test_delete_invalid_status_code_raises(self):
-        mocks.mock_out_post_users(1, 'test@email.com')
+        mocks.post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        mocks.mock_out_delete_users(
+        mocks.delete_users(
             user.id, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
 
         with pytest.raises(CASUnexpectedStatusCode):
@@ -305,14 +305,14 @@ class KagisoUserTest(TestCase):
 
     @responses.activate
     def test_confirm_email(self):
-        _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
+        _, post_data = mocks.post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        mocks.mock_out_put_users(
+        mocks.put_users(
             user.id,
             user.email,
             profile=user.profile
         )
-        url = mocks.mock_out_post_confirm_email()
+        url = mocks.post_confirm_email()
 
         user.confirm_email(post_data['confirmation_token'])
 
@@ -327,14 +327,14 @@ class KagisoUserTest(TestCase):
 
     @responses.activate
     def test_confirm_email_invalid_status_code_raises(self):
-        _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
+        _, post_data = mocks.post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        mocks.mock_out_put_users(
+        mocks.put_users(
             user.id,
             user.email,
             profile=user.profile
         )
-        mocks.mock_out_post_confirm_email(
+        mocks.post_confirm_email(
             status=http.HTTP_500_INTERNAL_SERVER_ERROR)
 
         with pytest.raises(CASUnexpectedStatusCode):
@@ -344,9 +344,9 @@ class KagisoUserTest(TestCase):
 
     @responses.activate
     def test_regenerate_confirmation_token(self):
-        _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
+        _, post_data = mocks.post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        url, data = mocks.mock_out_get_regenerate_confirmation_token(
+        url, data = mocks.get_regenerate_confirmation_token(
             user.email)
 
         token = user.regenerate_confirmation_token()
@@ -358,9 +358,9 @@ class KagisoUserTest(TestCase):
 
     @responses.activate
     def test_regenerate_confirmation_token_raises(self):
-        _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
+        _, post_data = mocks.post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        url, data = mocks.mock_out_get_regenerate_confirmation_token(
+        url, data = mocks.get_regenerate_confirmation_token(
             user.email,
             http.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -370,9 +370,9 @@ class KagisoUserTest(TestCase):
 
     @responses.activate
     def test_generate_reset_password_token(self):
-        _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
+        _, post_data = mocks.post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        url, data = mocks.mock_out_get_reset_password(user.email)
+        url, data = mocks.get_reset_password(user.email)
 
         reset_password_token = user.generate_reset_password_token()
 
@@ -383,9 +383,9 @@ class KagisoUserTest(TestCase):
 
     @responses.activate
     def test_generate_reset_password_token_invalid_status_raises(self):
-        _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
+        _, post_data = mocks.post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        url, data = mocks.mock_out_get_reset_password(
+        url, data = mocks.get_reset_password(
             user.email, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
 
         with pytest.raises(CASUnexpectedStatusCode):
@@ -394,9 +394,9 @@ class KagisoUserTest(TestCase):
 
     @responses.activate
     def test_reset_password(self):
-        _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
+        _, post_data = mocks.post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        url = mocks.mock_out_post_reset_password(user.email)
+        url = mocks.post_reset_password(user.email)
 
         did_password_reset = user.reset_password('new_password', 'test_token')
 
@@ -407,9 +407,9 @@ class KagisoUserTest(TestCase):
 
     @responses.activate
     def test_reset_password_invalid_status_code_raises(self):
-        _, post_data = mocks.mock_out_post_users(1, 'test@email.com')
+        _, post_data = mocks.post_users(1, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        mocks.mock_out_post_reset_password(
+        mocks.post_reset_password(
             user.email, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
 
         with pytest.raises(CASUnexpectedStatusCode):
@@ -423,9 +423,9 @@ class KagisoUserTest(TestCase):
     @responses.activate
     def test_record_sign_out(self):
         id = 1
-        _, post_data = mocks.mock_out_post_users(id, 'test@email.com')
+        _, post_data = mocks.post_users(id, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        url = mocks.mock_out_delete_sessions(id)
+        url = mocks.delete_sessions(id)
 
         did_sign_out = user.record_sign_out()
 
@@ -437,9 +437,9 @@ class KagisoUserTest(TestCase):
     @responses.activate
     def test_record_sign_out_invalid_status_code_raises(self):
         id = 1
-        _, post_data = mocks.mock_out_post_users(id, 'test@email.com')
+        _, post_data = mocks.post_users(id, 'test@email.com')
         user = mommy.make(models.KagisoUser, id=None)
-        mocks.mock_out_delete_sessions(
+        mocks.delete_sessions(
             id, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
 
         with pytest.raises(CASUnexpectedStatusCode):

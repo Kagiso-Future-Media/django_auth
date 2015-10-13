@@ -19,7 +19,7 @@ class KagisoUserTest(TestCase):
         profile = {
             'age': 18,
         }
-        url, api_data = mocks.mock_out_post_users(
+        url, api_data = mocks.post_users(
             1,
             email,
             first_name=first_name,
@@ -51,7 +51,7 @@ class KagisoUserTest(TestCase):
     def test_create_super_user(self):
         email = 'test@email.com'
         password = 'random'
-        url, api_data = mocks.mock_out_post_users(1, email, is_superuser=True)
+        url, api_data = mocks.post_users(1, email, is_superuser=True)
 
         result = KagisoUser.objects.create_superuser(email, password)
 
