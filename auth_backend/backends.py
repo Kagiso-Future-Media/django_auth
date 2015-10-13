@@ -1,8 +1,8 @@
 from django.contrib.auth.backends import ModelBackend
 from django.db.models.signals import pre_save
 
+from . import http
 from .auth_api_client import AuthApiClient
-
 from .exceptions import CASUnexpectedStatusCode, EmailNotConfirmedError
 from .models import KagisoUser, save_user_to_cas
 
@@ -37,7 +37,7 @@ class KagisoBackend(ModelBackend):
         auth_api_client = AuthApiClient(cas_credentials)
         status, data = auth_api_client.call('sessions', 'POST', payload)
 
-        if status == 200:
+        if status == http.HTTP_200_OK:
             local_user = KagisoUser.objects.filter(id=data['id']).first()
             if local_user:
                 local_user.override_cas_credentials(cas_credentials)
@@ -52,9 +52,9 @@ class KagisoBackend(ModelBackend):
                     local_user.save()
                 finally:
                     pre_save.connect(save_user_to_cas, sender=KagisoUser)
-        elif status == 404:
+        elif status == http.HTTP_404_NOT_FOUND:
             return None
-        elif status == 422:
+        elif status == http.HTTP_422_UNPROCESSABLE_ENTITY:
             raise EmailNotConfirmedError()
         else:
             raise CASUnexpectedStatusCode(status, data)
