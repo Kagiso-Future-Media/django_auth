@@ -11,6 +11,6 @@ setup(
     packages=find_packages(),
     install_requires=[
             'jsonfield==1.0.3',
-            'requests==2.6.0',
+            'requests==2.8.1',
     ],
 )

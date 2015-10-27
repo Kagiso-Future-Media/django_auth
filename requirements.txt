@@ -20,6 +20,6 @@ pytest==2.7.0
 pytest-django==2.8.0
 pytest-xdist==1.11
 python-dateutil==2.4.2
-requests==2.6.0
+requests==2.8.1
 responses==0.3.0
 six==1.9.0
