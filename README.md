@@ -42,7 +42,6 @@ CAS_BASE_URL (optional - defaults to https://auth.kagiso.io) = 'xyz'
 
 ## Testing
 This library uses Pytest-Django (https://pytest-django.readthedocs.org/en/latest/).
-Postgres is needed to run the tests, as JSONField's are utilised for profiles etc.
 
 ```
 pip install -r requirements.txt
