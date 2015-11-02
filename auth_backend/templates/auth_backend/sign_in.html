@@ -1,0 +1,52 @@
+{% extends 'core/base.html' %}
+{% load staticfiles %}
+
+{% block title %}Sign In{% endblock %}
+
+{% block content %}
+
+  <h1>Sign In</h1>
+  <section class="form-main-wrapper">
+    <div class="logo-block"></div>
+    <div class="social-sign-in">
+      <p>Sign in using your social account.</p>
+      <ul>
+        <li class="facebook">
+          <a href="{% url 'oauth' provider='facebook' %}">
+            <img
+              src="{% static 'core/images/icons/form/facebook_icon.png' %}"
+              alt="Facebook">
+          </a>
+        </li>
+        <li class="google-plus">
+          <a href="{% url 'oauth' provider='google' %}">
+            <img
+              src="{% static 'core/images/icons/form/google_plus_icon.png' %}"
+              alt="Google Plus">
+          </a>
+        </li>
+        <li class="twitter">
+          <a href="{% url 'oauth' provider='twitter' %}">
+            <img
+              src="{% static 'core/images/icons/form/twitter_icon.png' %}"
+              alt="Twitter">
+          </a>
+        </li>
+      </ul>
+    </div>
+    <form
+      action="{% url 'sign_in' %}"
+      method="post"
+      class="sign-in-form form-generic">
+      {{ form.as_p }}
+      <input type="submit" value="Sign in" class="btn btn-primary btn-lg" />
+    </form>
+    <a href="{% url 'forgot_password' %}" class="forgot-password">
+      Forgot your password?
+    </a>
+    <a href="{% url 'sign_up' %}" class="register-button">
+      Register for a free account
+    </a>
+  </section>
+
+{% endblock %}

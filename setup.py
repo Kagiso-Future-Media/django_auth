@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='kagiso_django_auth',
-    version='2.2.1',
+    version='3.0.0',
     author='Kagiso Media',
     author_email='development@kagiso.io',
     description='Kagiso Django AuthBackend',
@@ -12,5 +12,6 @@ setup(
     install_requires=[
             'jsonfield==1.0.3',
             'requests==2.8.1',
+            'authomatic==0.1.0.post1'
     ],
 )

@@ -31,6 +31,14 @@ Then specify that Django is to use the `KagisoUser` model as its user model.
 AUTH_USER_MODEL = 'auth_backend.KagisoUser'
 ```
 
+If you want to use the generic auth UI for sign ups and password resets etc,
+add the following to your urls.py:
+
+```
+from auth_backend import urls as auth_backend_urls
+url(r'', include(auth_backend_urls)),
+```
+
 Finally you need to add your CAS credentials to settings.py.
 In production make sure you read them in from an environment variable.
 
