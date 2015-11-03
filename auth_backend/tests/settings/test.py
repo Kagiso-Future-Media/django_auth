@@ -1,6 +1,12 @@
 import os
 
+DEBUG = True
+
 SECRET_KEY = '^7jcx7^h#b@%a76lr@a2!7xj#@4@5ayuyan9c$y#(_(8l3)_%t'
+UNIT_TEST_SETTINGS = True
+
+JAC_CAS_TOKEN = 'xyz'
+JAC_CAS_SOURCE_ID = 'xyz'
 
 INSTALLED_APPS = (
     'django.contrib.admin',
@@ -9,6 +15,9 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'django_extensions',
+
     'auth_backend',
 )
 
@@ -75,5 +84,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
-
 AUTH_USER_MODEL = 'auth_backend.KagisoUser'
+
+# Authomatic is mocked out in the tests, but a key lookup is still
+# performed to get settings, so pass a stub back
+AUTHOMATIC_CONFIG = {'jacaranda': 'zyx'}

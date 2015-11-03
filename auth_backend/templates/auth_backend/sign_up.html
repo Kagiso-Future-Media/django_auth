@@ -1,0 +1,69 @@
+{% extends 'core/base.html' %}
+{% load staticfiles %}
+
+{% block body_class %}signup{% endblock %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+
+  <div class="sign-in-btn-mobile visible-xs visible-sm">
+    <p>Already part of our family? Sign in below</p>
+    <a href="{% url 'sign_in' %}" class="btn btn-primary btn-lg">Sign in</a>
+  </div>
+
+  <h1>Register for an account</h1>
+  <section class="form-main-wrapper">
+    <div class="logo-block"></div>
+    <div class="social-sign-in">
+      <p>Sign in using your social account.</p>
+      <ul>
+        <li class="facebook">
+          <a href="{% url 'oauth' provider='facebook' %}">
+            <img
+              src="{% static 'core/images/icons/form/facebook_icon.png' %}"
+              alt="Facebook">
+          </a>
+        </li>
+        <li class="google-plus">
+          <a href="{% url 'oauth' provider='google' %}">
+            <img
+              src="{% static 'core/images/icons/form/google_plus_icon.png' %}"
+              alt="Google Plus">
+          </a>
+        </li>
+        <li class="twitter">
+          <a href="{% url 'oauth' provider='twitter' %}">
+            <img
+              src="{% static 'core/images/icons/form/twitter_icon.png' %}"
+              alt="Twitter">
+          </a>
+        </li>
+      </ul>
+    </div>
+    <form
+      action="{% url 'sign_up' %}"
+      method="post"
+      class="sign-up-form form-generic">
+      {% for field in form %}
+      {{ field.errors }}
+        <label for="{{ field.id_for_label }}">
+        {{ field.label }}
+          {% if field.field.required %}
+            <span class="required"></span>
+          {% endif %}
+        </label>
+        {{ field }}
+      {% endfor %}
+      <input
+        type="submit"
+        value="Create my account"
+        class="btn btn-primary btn-lg" />
+    </form>
+  </section>
+
+{% endblock %}
+
+{% block extrajs_nocompress %}
+  <script type="text/javascript" src="{% static 'core/vendor/intl-tel-input/intlTelInput.min.js' %}"></script>
+{% endblock %}
