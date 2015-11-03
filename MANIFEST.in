@@ -1,0 +1,1 @@
+recursive-include auth_backend *.html *.scss *.css *.jpg *.png *.js
