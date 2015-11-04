@@ -1,1 +1,3 @@
 recursive-include auth_backend *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
