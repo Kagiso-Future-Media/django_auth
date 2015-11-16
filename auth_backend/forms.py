@@ -99,7 +99,6 @@ class SignUpForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
         required=False
     )
-    twitter_handle = None
 
     # --- Instance variables ---
     social_sign_in = False
@@ -113,9 +112,6 @@ class SignUpForm(forms.Form):
         if oauth_data:
             form.social_sign_in = True
             form._remove_password_fields()
-
-            if oauth_data.get('provider') == 'twitter':
-                form.twitter_handle = oauth_data['twitter_handle']
 
         return form
 
@@ -147,9 +143,6 @@ class SignUpForm(forms.Form):
         # to support multitenancy
         if self.site_id:
             user.profile['site_id'] = self.site_id
-
-        if self.twitter_handle:
-            user.profile['twitter_handle'] = self.twitter_handle
 
         user.save()
         return user
