@@ -218,51 +218,6 @@ class OauthTest(TestCase):
 
         assert mock_authomatic.login.called
 
-    @patch('auth_backend.views.RequestContext', autospec=True)
-    @patch('auth_backend.views.Authomatic', autospec=True)
-    def test_twitter_sign_up_saves_twitter_handle_in_session(  # noqa
-            self, MockAuthomatic, MockRequestContext):
-        # Twitter doesn't return an email, so we need their Twitter handle,
-        # which we link to the user, which enables Twitter sign in
-
-        MockRequestContext.return_value = {'site_name': 'jacaranda'}
-
-        oauth_data = {
-            'email': 'test@email.com',
-            'first_name': 'Fred',
-            'last_name': 'Smith',
-            'birth_date': str(date(1980, 1, 31)),
-            'gender': 'male',
-            'screen_name': 'fred_smith',
-        }
-        mock_result = MagicMock()
-        mock_result.provider.name = 'twitter'
-        mock_result.error = None
-        mock_result.user.data = oauth_data
-
-        mock_result.user.email = oauth_data['email']
-        mock_result.user.first_name = oauth_data['first_name']
-        mock_result.user.last_name = oauth_data['last_name']
-        mock_result.user.birth_date = oauth_data['birth_date']
-        mock_result.user.gender = oauth_data['gender']
-
-        mock_authomatic = MagicMock()
-        mock_authomatic.login.return_value = mock_result
-        MockAuthomatic.return_value = mock_authomatic
-
-        response = self.client.get('/oauth/twitter/', follow=True)
-
-        # Social sign up should prefill sign up form
-        assert oauth_data['email'] in str(response.content)
-        assert oauth_data['first_name'] in str(response.content)
-        assert oauth_data['last_name'] in str(response.content)
-        assert oauth_data['gender'] in str(response.content)
-
-        # Twitter handle should be saved in the session, so once
-        # user completes Sign Up form their twitter handle gets linked
-        twitter_handle = self.client.session['oauth_data']['twitter_handle']
-        assert twitter_handle == oauth_data['screen_name']
-
     @patch('auth_backend.views.authenticate', autospec=True)
     @patch('auth_backend.views.login', autospec=True)
     @patch('auth_backend.views.KagisoUser', autospec=True)

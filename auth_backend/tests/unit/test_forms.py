@@ -131,29 +131,3 @@ class TestSignUpForm:
         assert user.profile['alerts'] == data['alerts']
 
         assert not user.set_password.called
-
-    @patch('auth_backend.forms.KagisoUser', autospec=True)
-    def test_save_twitter_sign_up_saves_twitter_handle(self, MockKagisoUser):  # noqa
-        # Twitter doesn't return an email
-        # So we link the user to their twitter handle, so they can sign in
-        # via twitter
-        oauth_data = {
-            'provider': 'twitter',
-            'twitter_handle': 'fred_smith'
-        }
-        data = {
-            'email': 'bogus@email.com',
-            'first_name': 'Fred',
-            'last_name': 'Smith',
-            'mobile': '123456789',
-            'gender': 'MALE',
-            'region': 'EASTERN_CAPE',
-            'birth_date': date(1980, 1, 31),
-            'alerts': ['EMAIL', 'SMS'],
-        }
-        form = forms.SignUpForm.create(post_data=data, oauth_data=oauth_data)
-        assert form.is_valid()
-
-        user = form.save()
-
-        assert user.profile['twitter_handle'] == oauth_data['twitter_handle']

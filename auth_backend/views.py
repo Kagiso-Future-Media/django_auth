@@ -65,8 +65,7 @@ def sign_up(request):
                 return HttpResponseRedirect(reverse('sign_in'))
 
             # Social sign ins provide emails that have already been confirmed
-            # via FB, Twitter etc...
-            # TODO: send if twitter
+            # via FB, Google etc...
             if not oauth_data:
                 _send_confirmation_email(user, request)
                 messages.success(request, confirm_message)
@@ -199,18 +198,7 @@ def oauth(request, provider):
 
             email = result.user.data.get('email')
             provider = result.provider.name
-            # Twitter sends back the user's Twitter handle as 'screen_name'
-            twitter_handle = result.user.data.get('screen_name')
-
-            user = None
-            # TODO: Move this to Django Auth's manager
-            query = 'SELECT * ' \
-                'FROM auth_backend_kagisouser ' \
-                'WHERE profile::json->>\'twitter_handle\' = %s ' \
-                'OR email = %s;'
-            query_set = KagisoUser.objects.raw(query, [twitter_handle, email])
-            if len(list(query_set)) > 0:
-                user = query_set[0]
+            user = KagisoUser.objects.filter(email=email).first()
 
             if user:
                 _social_login(request, user.email, provider)
@@ -230,9 +218,6 @@ def oauth(request, provider):
                     'gender': gender,
                     'birth_date': result.user.birth_date,
                 }
-
-                if provider == 'twitter':
-                    data['twitter_handle'] = twitter_handle
 
                 request.session['oauth_data'] = data
                 return HttpResponseRedirect(reverse('sign_up'))
