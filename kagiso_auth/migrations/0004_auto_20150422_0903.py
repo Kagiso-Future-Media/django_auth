@@ -9,7 +9,7 @@ import datetime
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('auth_backend', '0003_kagisouser_profile'),
+        ('kagiso_auth', '0003_kagisouser_profile'),
     ]
 
     operations = [

@@ -79,7 +79,7 @@ def sign_up(request):
 
     return render(
         request,
-        'auth_backend/sign_up.html',
+        'kagiso_auth/sign_up.html',
         {'form': form},
     )
 
@@ -168,7 +168,7 @@ def sign_in(request):
 
     return render(
         request,
-        'auth_backend/sign_in.html',
+        'kagiso_auth/sign_in.html',
         {'form': form}
     )
 
@@ -300,7 +300,7 @@ def forgot_password(request):
 
     return render(
         request,
-        'auth_backend/forgot_password.html',
+        'kagiso_auth/forgot_password.html',
         {'form': form}
     )
 
@@ -337,7 +337,7 @@ def reset_password(request):
 
     return render(
         request,
-        'auth_backend/reset_password.html',
+        'kagiso_auth/reset_password.html',
         {'form': form}
     )
 

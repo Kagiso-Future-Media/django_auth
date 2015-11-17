@@ -18,7 +18,7 @@ class SignUpTest(TestCase):
         assert response.status_code == 200
         assert b'<h1>Register for an account</h1>' in response.content
 
-    @patch('auth_backend.forms.KagisoUser', autospec=True)
+    @patch('kagiso_auth.forms.KagisoUser', autospec=True)
     def test_sign_up_post(self, MockKagisoUser):  # noqa
         mock_user = MockKagisoUser.return_value
         mock_user.id = 1
@@ -61,7 +61,7 @@ class SignUpTest(TestCase):
         assert mail.outbox[0].to[0] == mock_user.email
         assert mail.outbox[0].subject == 'Confirm Your Account'
 
-    @patch('auth_backend.forms.KagisoUser', autospec=True)
+    @patch('kagiso_auth.forms.KagisoUser', autospec=True)
     def test_sign_up_user_already_exists_redirects_to_sign_in(self, MockKagisoUser):  # noqa
         mock_user = MockKagisoUser.return_value
         mock_user.save.side_effect = IntegrityError()
@@ -86,7 +86,7 @@ class SignUpTest(TestCase):
         assert message == 'You already have an account.'
         self.assertRedirects(response, '/sign_in/')
 
-    @patch('auth_backend.views.get_object_or_404', autospec=True)
+    @patch('kagiso_auth.views.get_object_or_404', autospec=True)
     def test_confirm_account(self, mock_get_object_or_404):
         mock_instance = mock_get_object_or_404.return_value
 
@@ -111,7 +111,7 @@ class SignInTest(TestCase):
         assert response.status_code == 200
         assert b'<h1>Sign In</h1>' in response.content
 
-    @patch('auth_backend.views.authenticate', autospec=True)
+    @patch('kagiso_auth.views.authenticate', autospec=True)
     def test_sign_in_invalid_credentials(self, mock_authenticate):
         data = {'email': 'bogus@email.com', 'password': 'bogus'}
         mock_authenticate.return_value = None
@@ -122,7 +122,7 @@ class SignInTest(TestCase):
         assert mock_authenticate.called
         assert message == 'Incorrect email or password'
 
-    @patch('auth_backend.views.authenticate', autospec=True)
+    @patch('kagiso_auth.views.authenticate', autospec=True)
     def test_sign_in_unconfirmed_email(self, mock_authenticate):
         data = {'email': 'bogus@email.com', 'password': 'bogus'}
         mock_authenticate.side_effect = EmailNotConfirmedError
@@ -135,7 +135,7 @@ class SignInTest(TestCase):
             '<a href="/resend_confirmation?email={email}">' \
             'Resend confirmation email</a>'.format(email=data['email'])
 
-    @patch('auth_backend.views.KagisoUser', autospec=True)
+    @patch('kagiso_auth.views.KagisoUser', autospec=True)
     def test_resend_confirmation(self, MockKagisoUser):  # noqa
         # ----- Arrange -----
         email = 'mock@user.com'
@@ -162,8 +162,8 @@ class SignInTest(TestCase):
         assert mail.outbox[0].to[0] == email
         assert mail.outbox[0].subject == 'Confirm Your Account'
 
-    @patch('auth_backend.views.login', autospec=True)
-    @patch('auth_backend.views.authenticate', autospec=True)
+    @patch('kagiso_auth.views.login', autospec=True)
+    @patch('kagiso_auth.views.authenticate', autospec=True)
     def test_sign_in_valid_credentials(self, mock_authenticate, mock_login):
         user = KagisoUser(email='test@email.com', password='password')
         data = {'email': user.email, 'password': user.password}
@@ -179,8 +179,8 @@ class SignInTest(TestCase):
 
 class OauthTest(TestCase):
 
-    @patch('auth_backend.views.RequestContext', autospec=True)
-    @patch('auth_backend.views.Authomatic', autospec=True)
+    @patch('kagiso_auth.views.RequestContext', autospec=True)
+    @patch('kagiso_auth.views.Authomatic', autospec=True)
     def test_new_user_redirects_to_sign_up_page(  # noqa
             self, MockAuthomatic, MockRequestContext):
 
@@ -218,11 +218,11 @@ class OauthTest(TestCase):
 
         assert mock_authomatic.login.called
 
-    @patch('auth_backend.views.authenticate', autospec=True)
-    @patch('auth_backend.views.login', autospec=True)
-    @patch('auth_backend.views.KagisoUser', autospec=True)
-    @patch('auth_backend.views.RequestContext', autospec=True)
-    @patch('auth_backend.views.Authomatic', autospec=True)
+    @patch('kagiso_auth.views.authenticate', autospec=True)
+    @patch('kagiso_auth.views.login', autospec=True)
+    @patch('kagiso_auth.views.KagisoUser', autospec=True)
+    @patch('kagiso_auth.views.RequestContext', autospec=True)
+    @patch('kagiso_auth.views.Authomatic', autospec=True)
     def test_existing_user_gets_signed_in(  # noqa
             self,
             MockAuthomatic,
@@ -256,8 +256,8 @@ class OauthTest(TestCase):
 
 class SignOutTest(TestCase):
 
-    @patch('auth_backend.views.RequestContext', autospec=True)
-    @patch('auth_backend.views.logout', autospec=True)
+    @patch('kagiso_auth.views.RequestContext', autospec=True)
+    @patch('kagiso_auth.views.logout', autospec=True)
     def test_sign_out(self, mock_logout, MockRequestContext):  # noqa
         MockRequestContext.return_value = {'site_name': 'jacaranda'}
         site = MagicMock()
@@ -294,7 +294,7 @@ class ForgotPasswordTest(TestCase):
         assert response.status_code == 200
         assert 'We could not find a user for that email address' == message
 
-    @patch('auth_backend.views.KagisoUser', autospec=True)
+    @patch('kagiso_auth.views.KagisoUser', autospec=True)
     def test_forgot_password_sends_reset_email(self, MockKagisoUser):  # noqa
         # ----- Arrange -----
         email = 'mock@user.com'
@@ -329,7 +329,7 @@ class ResetPasswordTest(TestCase):
         assert response.status_code == 200
         assert b'<h1>Reset Password</h1>' in response.content
 
-    @patch('auth_backend.views.KagisoUser', autospec=True)
+    @patch('kagiso_auth.views.KagisoUser', autospec=True)
     def test_reset_password_post(self, MockKagisoUser):  # noqa
         email = 'mock@user.com'
         user = KagisoUser(email=email)

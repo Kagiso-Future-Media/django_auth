@@ -2,7 +2,7 @@ from django.conf import settings
 from django.conf.urls import patterns, url
 from django.shortcuts import render
 
-from auth_backend import views
+from kagiso_auth import views
 
 urlpatterns = patterns(
     '',
@@ -23,6 +23,6 @@ urlpatterns = patterns(
 if getattr(settings, 'UNIT_TEST_SETTINGS', False):
     # The host app will have the real home page
     def mock_home(request):
-        return render(request, 'auth_backend/blank.html')
+        return render(request, 'kagiso_auth/blank.html')
 
     urlpatterns.append(url(r'^$', mock_home))

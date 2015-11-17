@@ -7,12 +7,12 @@
 `pip install kagiso_django_auth`
 
 ## Usage
-Add auth_backend to the list of `INSTALLED_APPS` in your settings.py:
+Add kagiso_auth to the list of `INSTALLED_APPS` in your settings.py:
 
 ```
 INSTALLED_APPS = (
     # ...,
-    'auth_backend',
+    'kagiso_auth',
 )
 ```
 
@@ -21,22 +21,22 @@ Then add the custom backend to the list of 'AUTHENTICATION_BACKENDS`:
 ```
 AUTHENTICATION_BACKENDS = (
     # ...
-    'auth_backend.backends.KagisoBackend',
+    'kagiso_auth.backends.KagisoBackend',
 )
 ```
 
 Then specify that Django is to use the `KagisoUser` model as its user model.
 
 ```
-AUTH_USER_MODEL = 'auth_backend.KagisoUser'
+AUTH_USER_MODEL = 'kagiso_auth.KagisoUser'
 ```
 
 If you want to use the generic auth UI for sign ups and password resets etc,
 add the following to your urls.py:
 
 ```
-from auth_backend import urls as auth_backend_urls
-url(r'', include(auth_backend_urls)),
+from kagiso_auth import urls as kagiso_auth_urls
+url(r'', include(kagiso_auth_urls)),
 ```
 
 Finally you need to add your CAS credentials to settings.py.
@@ -54,10 +54,10 @@ This library uses Pytest-Django (https://pytest-django.readthedocs.org/en/latest
 ```
 pip install -r requirements.txt
 py.test
-py.test --ds=auth_backend.tests.settings.ci # For Codeship
+py.test --ds=kagiso_auth.tests.settings.ci # For Codeship
 ```
 
 To run the integration tests (excluded by default as they are slow):
 ```
-py.test auth_backend/tests/integration/test_integration.py
+py.test kagiso_auth/tests/integration/test_integration.py
 ```

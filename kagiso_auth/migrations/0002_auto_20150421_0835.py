@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('auth_backend', '0001_initial'),
+        ('kagiso_auth', '0001_initial'),
     ]
 
     operations = [
