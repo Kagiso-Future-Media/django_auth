@@ -18,7 +18,7 @@ INSTALLED_APPS = (
 
     'django_extensions',
 
-    'auth_backend',
+    'kagiso_auth',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -31,9 +31,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'auth_backend.urls'
+ROOT_URLCONF = 'kagiso_auth.urls'
 
-WSGI_APPLICATION = 'auth_backend.wsgi.application'
+WSGI_APPLICATION = 'kagiso_auth.wsgi.application'
 
 
 # Database
@@ -41,7 +41,7 @@ WSGI_APPLICATION = 'auth_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'auth_backend',
+        'NAME': 'kagiso_auth',
         'USER': os.getenv('USER'),
         'PASSWORD': 'password',
         'ATOMIC_REQUESTS': True,
@@ -84,7 +84,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
-AUTH_USER_MODEL = 'auth_backend.KagisoUser'
+AUTH_USER_MODEL = 'kagiso_auth.KagisoUser'
 
 # Authomatic is mocked out in the tests, but a key lookup is still
 # performed to get settings, so pass a stub back

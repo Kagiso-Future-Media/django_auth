@@ -8,7 +8,7 @@ import jsonfield.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('auth_backend', '0002_auto_20150421_0835'),
+        ('kagiso_auth', '0002_auto_20150421_0835'),
     ]
 
     operations = [

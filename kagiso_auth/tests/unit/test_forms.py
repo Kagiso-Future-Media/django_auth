@@ -48,7 +48,7 @@ class TestSignUpForm:
         assert 'password' not in form.fields
         assert 'confirm_password' not in form.fields
 
-    @patch('auth_backend.forms.KagisoUser', autospec=True)
+    @patch('kagiso_auth.forms.KagisoUser', autospec=True)
     def test_save_regular_sign_up_from_regular_django_site(self, MockKagisoUser):  # noqa
         data = {
             'email': 'bogus@email.com',
@@ -79,7 +79,7 @@ class TestSignUpForm:
 
         user.set_password.assert_called_with(data['password'])
 
-    @patch('auth_backend.forms.KagisoUser', autospec=True)
+    @patch('kagiso_auth.forms.KagisoUser', autospec=True)
     def test_save_regular_sign_up_from_wagtail_site(self, MockKagisoUser):  # noqa
         site_id = 55
         data = {
@@ -102,7 +102,7 @@ class TestSignUpForm:
 
         assert user.profile['site_id'] == site_id
 
-    @patch('auth_backend.forms.KagisoUser', autospec=True)
+    @patch('kagiso_auth.forms.KagisoUser', autospec=True)
     def test_save_social_sign_up(self, MockKagisoUser):  # noqa
         data = {
             'provider': 'facebook',
