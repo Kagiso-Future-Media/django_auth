@@ -24,8 +24,6 @@ class KagisoUserTest(TestCase):
             email=email,
             first_name='George',
             last_name='Smith',
-            is_staff=True,
-            is_superuser=True,
             profile=profile,
         )
         user.set_password(password)
@@ -38,8 +36,6 @@ class KagisoUserTest(TestCase):
         assert result.email == user.email
         assert result.first_name == user.first_name
         assert result.last_name == user.last_name
-        assert result.is_staff
-        assert result.is_superuser
         assert not result.confirmation_token
         assert result.profile == profile
 
