@@ -53,9 +53,10 @@ class SignUpTest(TestCase):
         assert mock_user.profile['birth_date'] == str(data['birth_date'])
         assert mock_user.profile['alerts'] == data['alerts']
 
-        assert 'You will receive an email with confirmation instructions shortly.' \
-            'This link will expire within 24 hours.' \
-            == message
+        assert (
+            'You will receive an email with confirmation instructions shortly. '  # noqa
+            'This link will expire within 24 hours.'
+        ) == message
 
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to[0] == mock_user.email
@@ -154,9 +155,10 @@ class SignInTest(TestCase):
         message = list(response.context['messages'])[0].message
 
         assert response.status_code == 200
-        assert 'You will receive an email with confirmation instructions shortly.' \
-            'This link will expire within 24 hours.'\
-            == message
+        assert (
+            'You will receive an email with confirmation instructions shortly. '  # noqa
+            'This link will expire within 24 hours.'
+        ) == message
 
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to[0] == email

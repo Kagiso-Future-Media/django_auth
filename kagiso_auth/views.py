@@ -21,9 +21,10 @@ from .models import KagisoUser
 @never_cache
 @csrf_exempt
 def sign_up(request):
-    confirm_message = \
-        'You will receive an email with confirmation instructions shortly.' \
+    confirm_message = (
+        'You will receive an email with confirmation instructions shortly. '
         'This link will expire within 24 hours.'
+    )
     error_message = 'You already have an account.'
 
     if request.user.is_authenticated():
@@ -121,12 +122,14 @@ def sign_in(request):
                 else:
                     messages.error(request, 'Incorrect email or password')
             except EmailNotConfirmedError:
-                resend_str = 'Please first confirm your email address. ' \
-                    '<a href="/resend_confirmation?email={email}">' \
-                    'Resend confirmation email</a>'.format(email=email)
+                resend_message = (
+                    'Please first confirm your email address. '
+                    '<a href="/resend_confirmation?email={email}">'
+                    'Resend confirmation email</a>'
+                ).format(email=email)
                 messages.error(
                     request,
-                    mark_safe(resend_str)
+                    mark_safe(resend_message)
                 )
     else:
         form = forms.SignInForm()
@@ -300,10 +303,10 @@ def resend_confirmation(request):
 
     _send_confirmation_email(user, request)
 
-    confirm_message = \
-        'You will receive an email with confirmation instructions shortly.' \
+    confirm_message = (
+        'You will receive an email with confirmation instructions shortly. '
         'This link will expire within 24 hours.'
-
+    )
     messages.success(request, confirm_message)
 
     return HttpResponseRedirect(reverse('sign_in'))
