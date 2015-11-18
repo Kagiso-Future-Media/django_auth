@@ -152,8 +152,11 @@ def oauth(request, provider):
 
     if result:
         if result.error:
-            print(result.error)
-            # TODO: Send back where they came from
+            messages.error(
+                request,
+                'There was an error signing you in. Please try again'
+            )
+            return HttpResponseRedirect(reverse('sign_in'))
 
         if result.user:
             # Then user is being redirected back from provider with their data

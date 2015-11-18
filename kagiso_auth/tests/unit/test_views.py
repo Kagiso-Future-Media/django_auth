@@ -228,8 +228,6 @@ class OauthTest(TestCase):
 
         user = KagisoUser(email='test@email.com')
         user.save = MagicMock()
-        # Raw returns a QuerySet...
-        MockKagisoUser.objects.raw.return_value = [user]
 
         mock_result = MagicMock()
         mock_result.error = None
@@ -245,6 +243,27 @@ class OauthTest(TestCase):
         assert mock_authomatic.login.called
         assert mock_login.called
         assert mock_authenticate.called
+
+    @patch('kagiso_auth.views.authenticate', autospec=True)
+    @patch('kagiso_auth.views.login', autospec=True)
+    @patch('kagiso_auth.views.KagisoUser', autospec=True)
+    @patch('kagiso_auth.views.Authomatic', autospec=True)
+    def test_oauth_error_redirects_to_sign_in_page(  # noqa
+            self,
+            MockAuthomatic,
+            MockKagisoUser,
+            mock_login,
+            mock_authenticate):
+
+        user = KagisoUser(email='test@email.com')
+        user.save = MagicMock()
+
+        mock_result = MagicMock()
+        mock_result.error = True
+
+        response = self.client.get('/oauth/facebook/', follow=True)
+
+        self.assertRedirects(response, '/sign_in/')
 
 
 class SignOutTest(TestCase):
