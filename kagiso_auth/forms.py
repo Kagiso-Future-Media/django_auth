@@ -102,7 +102,6 @@ class SignUpForm(forms.Form):
 
     # --- Instance variables ---
     social_sign_in = False
-    site_id = None  # Wagtail only
 
     @classmethod
     def create(cls, post_data=None, oauth_data=None):
@@ -119,9 +118,8 @@ class SignUpForm(forms.Form):
         validate_passwords_match(self)
         return self.cleaned_data
 
-    def save(self, cas_credentials=None):
+    def save(self):
         user = KagisoUser()
-        user.override_cas_credentials(cas_credentials)
         user.email = self.cleaned_data['email']
 
         if self.social_sign_in:
@@ -138,11 +136,6 @@ class SignUpForm(forms.Form):
             'birth_date': str(self.cleaned_data['birth_date']),
             'alerts': self.cleaned_data['alerts'],
         }
-
-        # If we are using Wagtail keep track of which site it it
-        # to support multitenancy
-        if self.site_id:
-            user.profile['site_id'] = self.site_id
 
         user.save()
         return user

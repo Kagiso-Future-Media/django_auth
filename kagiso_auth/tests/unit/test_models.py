@@ -7,7 +7,7 @@ import responses
 
 from . import mocks
 from ... import http, models
-from ...exceptions import CASUnexpectedStatusCode
+from ...exceptions import AuthAPIUnexpectedStatusCode
 
 
 class KagisoUserTest(TestCase):
@@ -76,7 +76,7 @@ class KagisoUserTest(TestCase):
         assert result.modified == parser.parse(api_data['modified'])
 
     @responses.activate
-    def test_create_raises_if_user_exists_on_cas(self):
+    def test_create_raises_if_user_exists_on_auth_api(self):
         email = 'test@email.com'
         data = {
             'first_name': 'Fred',
@@ -111,7 +111,7 @@ class KagisoUserTest(TestCase):
             status=http.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-        with pytest.raises(CASUnexpectedStatusCode):
+        with pytest.raises(AuthAPIUnexpectedStatusCode):
             mommy.make(
                 models.KagisoUser,
                 id=None,
@@ -176,7 +176,7 @@ class KagisoUserTest(TestCase):
         assert result.modified == parser.parse(api_data['modified'])
 
     @responses.activate
-    def test_update_syncs_if_user_doesnt_exist_on_cas(self):
+    def test_update_syncs_if_user_doesnt_exist_on_auth_api(self):
         # ------------------------
         # -------Arrange----------
         # ------------------------
@@ -242,7 +242,7 @@ class KagisoUserTest(TestCase):
 
         user.email = email
 
-        with pytest.raises(CASUnexpectedStatusCode):
+        with pytest.raises(AuthAPIUnexpectedStatusCode):
             user.save()
 
     @responses.activate
@@ -268,7 +268,7 @@ class KagisoUserTest(TestCase):
         mocks.delete_users(
             user.id, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        with pytest.raises(CASUnexpectedStatusCode):
+        with pytest.raises(AuthAPIUnexpectedStatusCode):
             user.delete()
 
     def test_get_full_name_returns_email(self):
@@ -337,7 +337,7 @@ class KagisoUserTest(TestCase):
         mocks.post_confirm_email(
             status=http.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        with pytest.raises(CASUnexpectedStatusCode):
+        with pytest.raises(AuthAPIUnexpectedStatusCode):
             user.confirm_email(post_data['confirmation_token'])
 
         assert not user.email_confirmed
@@ -364,7 +364,7 @@ class KagisoUserTest(TestCase):
             user.email,
             http.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        with pytest.raises(CASUnexpectedStatusCode):
+        with pytest.raises(AuthAPIUnexpectedStatusCode):
             token = user.regenerate_confirmation_token()
             assert token is None
 
@@ -388,7 +388,7 @@ class KagisoUserTest(TestCase):
         url, data = mocks.get_reset_password(
             user.email, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        with pytest.raises(CASUnexpectedStatusCode):
+        with pytest.raises(AuthAPIUnexpectedStatusCode):
             reset_password_token = user.generate_reset_password_token()
             assert reset_password_token is None
 
@@ -412,7 +412,7 @@ class KagisoUserTest(TestCase):
         mocks.post_reset_password(
             user.email, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        with pytest.raises(CASUnexpectedStatusCode):
+        with pytest.raises(AuthAPIUnexpectedStatusCode):
             did_password_reset = user.reset_password(
                 'new_password',
                 'test_token'
@@ -442,6 +442,6 @@ class KagisoUserTest(TestCase):
         mocks.delete_sessions(
             id, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        with pytest.raises(CASUnexpectedStatusCode):
+        with pytest.raises(AuthAPIUnexpectedStatusCode):
             did_sign_out = user.record_sign_out()
             assert not did_sign_out

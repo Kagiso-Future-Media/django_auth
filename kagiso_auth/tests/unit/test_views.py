@@ -179,13 +179,8 @@ class SignInTest(TestCase):
 
 class OauthTest(TestCase):
 
-    @patch('kagiso_auth.views.RequestContext', autospec=True)
     @patch('kagiso_auth.views.Authomatic', autospec=True)
-    def test_new_user_redirects_to_sign_up_page(  # noqa
-            self, MockAuthomatic, MockRequestContext):
-
-        MockRequestContext.return_value = {'site_name': 'jacaranda'}
-
+    def test_new_user_redirects_to_sign_up_page(self, MockAuthomatic):  # noqa
         oauth_data = {
             'email': 'test@email.com',
             'first_name': 'Fred',
@@ -221,12 +216,10 @@ class OauthTest(TestCase):
     @patch('kagiso_auth.views.authenticate', autospec=True)
     @patch('kagiso_auth.views.login', autospec=True)
     @patch('kagiso_auth.views.KagisoUser', autospec=True)
-    @patch('kagiso_auth.views.RequestContext', autospec=True)
     @patch('kagiso_auth.views.Authomatic', autospec=True)
     def test_existing_user_gets_signed_in(  # noqa
             self,
             MockAuthomatic,
-            MockRequestContext,
             MockKagisoUser,
             mock_login,
             mock_authenticate):
@@ -235,8 +228,6 @@ class OauthTest(TestCase):
         user.save = MagicMock()
         # Raw returns a QuerySet...
         MockKagisoUser.objects.raw.return_value = [user]
-
-        MockRequestContext.return_value = {'site_name': 'jacaranda'}
 
         mock_result = MagicMock()
         mock_result.error = None
@@ -256,10 +247,8 @@ class OauthTest(TestCase):
 
 class SignOutTest(TestCase):
 
-    @patch('kagiso_auth.views.RequestContext', autospec=True)
     @patch('kagiso_auth.views.logout', autospec=True)
-    def test_sign_out(self, mock_logout, MockRequestContext):  # noqa
-        MockRequestContext.return_value = {'site_name': 'jacaranda'}
+    def test_sign_out(self, mock_logout):
         site = MagicMock()
         site.hostname = 'jacarandafm.com'
         user = KagisoUser()

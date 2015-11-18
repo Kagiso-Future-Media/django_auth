@@ -1,16 +1,16 @@
-class CASError(Exception):
+class AuthAPIError(Exception):
     pass
 
 
-class CASNetworkError(CASError):
+class AuthAPINetworkError(AuthAPIError):
     pass
 
 
-class CASTimeout(CASError):
+class AuthAPITimeout(AuthAPIError):
     pass
 
 
-class CASUnexpectedStatusCode(CASError):
+class AuthAPIUnexpectedStatusCode(AuthAPIError):
 
     def __init__(self, status_code, json):
         message = 'Status: {0}.\nJson: {1}'.format(status_code, json)
@@ -19,5 +19,5 @@ class CASUnexpectedStatusCode(CASError):
         super().__init__(message)
 
 
-class EmailNotConfirmedError(CASError):
+class EmailNotConfirmedError(AuthAPIError):
     pass

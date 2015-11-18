@@ -5,7 +5,7 @@ import pytest
 import requests
 
 from ...auth_api_client import AuthApiClient
-from ...exceptions import CASNetworkError, CASTimeout
+from ...exceptions import AuthAPINetworkError, AuthAPITimeout
 
 
 class TestApiClient(TestCase):
@@ -15,7 +15,7 @@ class TestApiClient(TestCase):
         auth_api_client = AuthApiClient()
         mock_request.side_effect = requests.exceptions.ConnectionError
 
-        with pytest.raises(CASNetworkError):
+        with pytest.raises(AuthAPINetworkError):
             auth_api_client.call('/endpoint/')
 
     @patch('kagiso_auth.auth_api_client.requests.request', autospec=True)
@@ -23,5 +23,5 @@ class TestApiClient(TestCase):
         auth_api_client = AuthApiClient()
         mock_request.side_effect = requests.exceptions.Timeout
 
-        with pytest.raises(CASTimeout):
+        with pytest.raises(AuthAPITimeout):
             auth_api_client.call('/endpoint/')

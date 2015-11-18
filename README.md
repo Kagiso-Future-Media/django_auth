@@ -1,4 +1,6 @@
 # Kagiso Auth
+Django client for our Authentication API
+(https://github.com/Kagiso-Future-Media/auth)
 
 [ ![Codeship Status for Kagiso-Future-Media/django_auth](https://codeship.com/projects/f5876350-c731-0132-3b15-4a390261e3f5/status?branch=master)](https://codeship.com/projects/74869)
 [![codecov.io](https://codecov.io/github/Kagiso-Future-Media/django_auth/coverage.svg?token=LrFwE9TaXk&branch=master)](https://codecov.io/github/Kagiso-Future-Media/django_auth?branch=master)
@@ -39,13 +41,12 @@ from kagiso_auth import urls as kagiso_auth_urls
 url(r'', include(kagiso_auth_urls)),
 ```
 
-Finally you need to add your CAS credentials to settings.py.
+Finally you need to add your AUTH_API credentials to settings.py.
 In production make sure you read them in from an environment variable.
 
 ```
-CAS_TOKEN = 'your-token'
-CAS_SOURCE_ID = 'your-source-id'
-CAS_BASE_URL (optional - defaults to https://auth.kagiso.io) = 'xyz'
+AUTH_API_TOKEN = 'your-token'
+AUTH_API_BASE_URL (optional - defaults to https://auth.kagiso.io) = 'xyz'
 ```
 
 ## Testing

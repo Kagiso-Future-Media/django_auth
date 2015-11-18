@@ -5,7 +5,7 @@ import responses
 from . import mocks
 from ... import http
 from ...backends import KagisoBackend
-from ...exceptions import CASUnexpectedStatusCode, EmailNotConfirmedError
+from ...exceptions import AuthAPIUnexpectedStatusCode, EmailNotConfirmedError
 from ...models import KagisoUser
 
 
@@ -82,7 +82,7 @@ class KagisoBackendTest(TestCase):
 
         backend = KagisoBackend()
 
-        with pytest.raises(CASUnexpectedStatusCode):
+        with pytest.raises(AuthAPIUnexpectedStatusCode):
             backend.authenticate(email=email, password=password)
 
     @responses.activate

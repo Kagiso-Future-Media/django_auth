@@ -9,7 +9,7 @@ from jsonfield import JSONField
 
 from . import http
 from .auth_api_client import AuthApiClient
-from .exceptions import CASUnexpectedStatusCode
+from .exceptions import AuthAPIUnexpectedStatusCode
 from .managers import AuthManager
 
 
@@ -35,10 +35,6 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
     def __init__(self, *args, **kwargs):
         self._auth_api_client = AuthApiClient()
         super().__init__(*args, **kwargs)
-
-    def override_cas_credentials(self, cas_credentials):
-        self.cas_credentials = cas_credentials
-        self._auth_api_client = AuthApiClient(self.cas_credentials)
 
     def get_full_name(self):
         return self.email
@@ -66,7 +62,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         status, data = self._auth_api_client.call(endpoint, 'POST', payload)
 
         if not status == http.HTTP_200_OK:
-            raise CASUnexpectedStatusCode(status, data)
+            raise AuthAPIUnexpectedStatusCode(status, data)
 
         self.confirmation_token = None
         self.email_confirmed = timezone.now()
@@ -77,7 +73,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         status, data = self._auth_api_client.call(endpoint, 'GET')
 
         if not status == http.HTTP_200_OK:
-            raise CASUnexpectedStatusCode(status, data)
+            raise AuthAPIUnexpectedStatusCode(status, data)
 
         self.confirmation_token = data['confirmation_token']
         return self.confirmation_token
@@ -87,7 +83,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         status, data = self._auth_api_client.call(endpoint, 'GET')
 
         if not status == http.HTTP_200_OK:
-            raise CASUnexpectedStatusCode(status, data)
+            raise AuthAPIUnexpectedStatusCode(status, data)
 
         return data['reset_password_token']
 
@@ -100,7 +96,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         status, data = self._auth_api_client.call(endpoint, 'POST', payload)
 
         if not status == http.HTTP_200_OK:
-            raise CASUnexpectedStatusCode(status, data)
+            raise AuthAPIUnexpectedStatusCode(status, data)
 
         return True
 
@@ -109,11 +105,11 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         status, data = self._auth_api_client.call(endpoint, 'DELETE')
 
         if not status == http.HTTP_200_OK:
-            raise CASUnexpectedStatusCode(status, data)
+            raise AuthAPIUnexpectedStatusCode(status, data)
 
         return True
 
-    def build_from_cas_data(self, data):
+    def build_from_auth_api_data(self, data):
         self.id = data['id']
         self.email = data['email']
         self.first_name = data.get('first_name', self.first_name)
@@ -125,7 +121,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         self.date_joined = parser.parse(data['created'])
         self.modified = parser.parse(data['modified'])
 
-    def _create_user_in_db_and_cas(self):
+    def _create_user_in_db_and_auth_api(self):
         payload = {
             'email': self.email,
             'first_name': self.first_name,
@@ -139,15 +135,15 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         status, data = self._auth_api_client.call('users', 'POST', payload)
 
         if status not in (http.HTTP_201_CREATED, http.HTTP_409_CONFLICT):
-            raise CASUnexpectedStatusCode(status, data)
+            raise AuthAPIUnexpectedStatusCode(status, data)
 
-        # 409-Conflict means that the user already exists in CAS
+        # 409-Conflict means that the user already exists in AuthAPI
         if status == http.HTTP_409_CONFLICT:
             raise IntegrityError('User already exists')
 
-        self.build_from_cas_data(data)
+        self.build_from_auth_api_data(data)
 
-    def _update_user_in_cas(self):
+    def _update_user_in_auth_api(self):
         payload = {
             'email': self.email,
             'first_name': self.first_name,
@@ -169,32 +165,32 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             self.profile = data.get('profile')
             self.modified = parser.parse(data['modified'])
         elif status == http.HTTP_404_NOT_FOUND:
-            # It is possible that a user exists locally but not on CAS
-            # eg. when converting an existing app to use CAS
-            # so on update if the user is not found, then create a CAS user
-            self._create_user_in_db_and_cas()
+            # It is possible that a user exists locally but not on AuthAPI
+            # eg. when converting an existing app to use AuthAPI
+            # so on update if the user is not found, then create a AuthAPI user
+            self._create_user_in_db_and_auth_api()
         else:
-            raise CASUnexpectedStatusCode(status, data)
+            raise AuthAPIUnexpectedStatusCode(status, data)
 
     def __str__(self):
         return self.email  # pragma: no cover
 
 
 @receiver(pre_delete, sender=KagisoUser)
-def delete_user_from_cas(sender, instance, *args, **kwargs):
+def delete_user_from_auth_api(sender, instance, *args, **kwargs):
     status, data = instance._auth_api_client.call(
         'users/{id}'.format(id=instance.id), 'DELETE')
 
-    # It is possible but unlikely that a user exists locally but not on CAS
-    # eg. when converting an existing app to use CAS
-    # So if not found on CAS just proceed to delete locally
+    # It is possible but unlikely that a user exists locally but not on AuthAPI
+    # eg. when converting an existing app to use AuthAPI
+    # So if not found on AuthAPI just proceed to delete locally
     if status not in (http.HTTP_204_NO_CONTENT, http.HTTP_404_NOT_FOUND):
-        raise CASUnexpectedStatusCode(status, data)
+        raise AuthAPIUnexpectedStatusCode(status, data)
 
 
 @receiver(pre_save, sender=KagisoUser)
-def save_user_to_cas(sender, instance, *args, **kwargs):
+def save_user_to_auth_api(sender, instance, *args, **kwargs):
     if not instance.id:
-        instance._create_user_in_db_and_cas()
+        instance._create_user_in_db_and_auth_api()
     else:
-        instance._update_user_in_cas()
+        instance._update_user_in_auth_api()
