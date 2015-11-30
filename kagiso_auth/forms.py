@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django import forms
+from django.conf import settings
 from django.forms.extras import widgets
 from django.utils import timezone
 
@@ -136,6 +137,7 @@ class SignUpForm(forms.Form):
             'birth_date': str(self.cleaned_data['birth_date']),
             'alerts': self.cleaned_data['alerts'],
         }
+        user.created_via = settings.APP_NAME
 
         user.save()
         return user

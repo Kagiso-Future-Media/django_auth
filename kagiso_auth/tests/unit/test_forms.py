@@ -2,6 +2,7 @@ from datetime import date
 from unittest.mock import patch
 
 from django import forms as django_forms
+from django.conf import settings
 
 from ... import forms
 
@@ -76,6 +77,7 @@ class TestSignUpForm:
         assert user.profile['region'] == data['region']
         assert user.profile['birth_date'] == str(data['birth_date'])
         assert user.profile['alerts'] == data['alerts']
+        assert user.created_via == settings.APP_NAME
 
         user.set_password.assert_called_with(data['password'])
 
@@ -106,5 +108,6 @@ class TestSignUpForm:
         assert user.profile['region'] == data['region']
         assert user.profile['birth_date'] == str(data['birth_date'])
         assert user.profile['alerts'] == data['alerts']
+        assert user.created_via == settings.APP_NAME
 
         assert not user.set_password.called

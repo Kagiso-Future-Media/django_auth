@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.test import TestCase
 import pytest
 import responses
@@ -15,26 +16,28 @@ class KagisoBackendTest(TestCase):
     def test_authenticate_valid_credentials_returns_user(self):
         email = 'test@email.com'
         password = 'random'
-        profile = {
-            'first_name': 'Fred'
-        }
-        mocks.post_users(
+
+        mocks.post_users(1, email)
+        user = KagisoUser.objects.create_user(email, password)
+        url, _ = mocks.post_sessions(
+            http.HTTP_200_OK,
+            last_sign_in_via=settings.APP_NAME
+        )
+        mocks.put_users(
             1,
             email,
-            profile=profile
+            last_sign_in_via=settings.APP_NAME
         )
-        user = KagisoUser.objects.create_user(
-            email, password, profile=profile)
-        url, _ = mocks.post_sessions(http.HTTP_200_OK)
 
         backend = KagisoBackend()
         result = backend.authenticate(email=email, password=password)
 
-        assert len(responses.calls) == 2
+        assert len(responses.calls) == 3
         assert responses.calls[1].request.url == url
 
         assert isinstance(result, KagisoUser)
         assert result.id == user.id
+        assert result.last_sign_in_via == settings.APP_NAME
 
     @responses.activate
     def test_authenticate_valid_credentials_creates_local_user_if_none(self):
@@ -49,18 +52,21 @@ class KagisoBackendTest(TestCase):
             'is_staff': True,
             'is_superuser': True,
             'profile': {'age': 40, },
+            'created_via': settings.APP_NAME,
+            'last_sign_in_via': settings.APP_NAME
         }
 
-        _, api_data = mocks.post_users(1, email)
+        # _, api_data = mocks.post_users(1, email)
         session_url, data = mocks.post_sessions(
             http.HTTP_200_OK,
             **data
         )
+        mocks.put_users(**data)
 
         backend = KagisoBackend()
         result = backend.authenticate(email=email, password=password)
 
-        assert len(responses.calls) == 1
+        assert len(responses.calls) == 2
         assert responses.calls[0].request.url == session_url
 
         assert result.id == data['id']
@@ -70,6 +76,8 @@ class KagisoBackendTest(TestCase):
         assert result.is_staff == data['is_staff']
         assert result.is_superuser == data['is_superuser']
         assert result.profile == data['profile']
+        assert result.created_via == settings.APP_NAME
+        assert result.last_sign_in_via == settings.APP_NAME
 
     @responses.activate
     def test_authenticate_invalid_status_code_raises(self):
@@ -94,11 +102,12 @@ class KagisoBackendTest(TestCase):
         # It is not used for auth purposes though
         user = KagisoUser.objects.create_user(email, password='unusable')
         url, data = mocks.post_sessions(http.HTTP_200_OK)
+        mocks.put_users(1, email)
 
         backend = KagisoBackend()
         result = backend.authenticate(email=email, strategy=strategy)
 
-        assert len(responses.calls) == 2
+        assert len(responses.calls) == 3
         assert responses.calls[1].request.url == url
 
         assert isinstance(result, KagisoUser)

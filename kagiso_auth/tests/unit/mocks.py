@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 import responses
 
 from ... import http
@@ -17,6 +18,7 @@ def post_users(id, email, status=http.HTTP_201_CREATED, **kwargs):
         'confirmation_token': '49:1YkTO2:1VuxvGJre66xqQj6rkEXewmVs08',
         'email_confirmed': None,
         'profile': kwargs.get('profile'),
+        'created_via': settings.APP_NAME,
         'created': '2015-04-21T08:18:30.368602Z',
         'modified': '2015-04-21T08:18:30.374410Z'
     }
@@ -42,7 +44,9 @@ def put_users(id, email, status=http.HTTP_200_OK, **kwargs):
         'is_superuser': kwargs.get('is_superuser', False),
         'profile': kwargs.get('profile'),
         'created': '2015-04-21T08:18:30.368602Z',
-        'modified': '2015-04-21T08:18:30.374410Z'
+        'created_via': kwargs.get('created_via'),
+        'modified': '2015-04-21T08:18:30.374410Z',
+        'last_sign_in_via': kwargs.get('last_sign_in_via'),
     }
 
     responses.add(
@@ -135,7 +139,9 @@ def post_sessions(status=http.HTTP_200_OK, **kwargs):
         'email_confirmed': None,
         'profile': kwargs.get('profile'),
         'created': '2015-04-21T08:18:30.368602Z',
-        'modified': '2015-04-21T08:18:30.374410Z'
+        'created_via': kwargs.get('created_via'),
+        'modified': '2015-04-21T08:18:30.374410Z',
+        'last_sign_in_via': kwargs.get('last_sign_in_via'),
     }
 
     responses.add(

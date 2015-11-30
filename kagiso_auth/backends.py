@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
 from django.db.models.signals import pre_save
 
@@ -51,6 +52,9 @@ class KagisoBackend(ModelBackend):
                     local_user.save()
                 finally:
                     pre_save.connect(save_user_to_auth_api, sender=KagisoUser)
+
+            local_user.last_sign_in_via = settings.APP_NAME
+            local_user.save()
         elif status == http.HTTP_404_NOT_FOUND:
             return None
         elif status == http.HTTP_422_UNPROCESSABLE_ENTITY:

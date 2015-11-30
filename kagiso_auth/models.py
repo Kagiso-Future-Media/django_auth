@@ -24,8 +24,10 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
     email_confirmed = models.DateTimeField(null=True)
     profile = JSONField(null=True)
     is_active = models.BooleanField(default=True)
-    date_joined = models.DateTimeField()
+    created = models.DateTimeField()
+    created_via = models.CharField(blank=True, null=True, max_length=100)
     modified = models.DateTimeField()
+    last_sign_in_via = models.CharField(blank=True, null=True, max_length=100)
 
     confirmation_token = None
     raw_password = None
@@ -118,7 +120,8 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         self.is_superuser = data.get('is_superuser', self.is_superuser)
         self.profile = data.get('profile', self.profile)
         self.confirmation_token = data.get('confirmation_token')
-        self.date_joined = parser.parse(data['created'])
+        self.created = parser.parse(data['created'])
+        self.created_via = data.get('created_via')
         self.modified = parser.parse(data['modified'])
 
     def _create_user_in_db_and_auth_api(self):
@@ -130,6 +133,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             'is_superuser': self.is_superuser,
             'profile': self.profile,
             'password': self.raw_password,
+            'created_via': self.created_via
         }
 
         status, data = self._auth_api_client.call('users', 'POST', payload)
@@ -151,6 +155,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             'is_staff': self.is_staff,
             'is_superuser': self.is_superuser,
             'profile': self.profile,
+            'last_sign_in_via': self.last_sign_in_via
         }
 
         status, data = self._auth_api_client.call(
@@ -164,6 +169,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             self.is_superuser = data.get('is_superuser')
             self.profile = data.get('profile')
             self.modified = parser.parse(data['modified'])
+            self.last_sign_in_via = data.get('last_sign_in_via')
         elif status == http.HTTP_404_NOT_FOUND:
             # It is possible that a user exists locally but not on AuthAPI
             # eg. when converting an existing app to use AuthAPI

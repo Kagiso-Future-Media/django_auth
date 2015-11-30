@@ -44,7 +44,7 @@ class KagisoUserTest(TestCase):
         assert result.confirmation_token == api_data['confirmation_token']
         assert not result.email_confirmed
         assert result.profile == profile
-        assert result.date_joined == parser.parse(api_data['created'])
+        assert result.created == parser.parse(api_data['created'])
         assert result.modified == parser.parse(api_data['modified'])
 
     @responses.activate

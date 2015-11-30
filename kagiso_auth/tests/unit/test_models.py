@@ -1,4 +1,5 @@
 from dateutil import parser
+from django.conf import settings
 from django.db.utils import IntegrityError
 from django.test import TestCase
 from model_mommy import mommy
@@ -34,7 +35,7 @@ class KagisoUserTest(TestCase):
             last_name=last_name,
             is_staff=is_staff,
             is_superuser=is_superuser,
-            profile=profile
+            profile=profile,
         )
         # ------------------------
         # -------Act--------------
@@ -72,7 +73,8 @@ class KagisoUserTest(TestCase):
         assert not result.email_confirmed
         assert result.confirmation_token is None
         assert result.profile == api_data['profile']
-        assert result.date_joined == parser.parse(api_data['created'])
+        assert result.created == parser.parse(api_data['created'])
+        assert result.created_via == settings.APP_NAME
         assert result.modified == parser.parse(api_data['modified'])
 
     @responses.activate
@@ -143,7 +145,8 @@ class KagisoUserTest(TestCase):
             last_name=last_name,
             is_staff=is_staff,
             is_superuser=is_superuser,
-            profile=profile
+            profile=profile,
+            last_sign_in_via=settings.APP_NAME
         )
 
         # ------------------------
@@ -156,6 +159,7 @@ class KagisoUserTest(TestCase):
         user.is_staff = is_staff
         user.is_superuser = is_superuser
         user.profile = profile
+        user.last_sign_in_via = settings.APP_NAME
         user.save()
 
         # ------------------------
@@ -174,6 +178,7 @@ class KagisoUserTest(TestCase):
         assert result.is_superuser == api_data['is_superuser']
         assert result.profile == api_data['profile']
         assert result.modified == parser.parse(api_data['modified'])
+        assert result.last_sign_in_via == api_data['last_sign_in_via']
 
     @responses.activate
     def test_update_syncs_if_user_doesnt_exist_on_auth_api(self):

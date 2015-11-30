@@ -22,6 +22,8 @@ class AuthApiClient:
         auth_headers = {
             'AUTHORIZATION': 'Token {0}'.format(self._auth_api_token),
         }
+        print(self._auth_api_token)
+        print(self.BASE_URL)
         url = '{base_url}/{endpoint}/.json'.format(
             base_url=self.BASE_URL,
             endpoint=endpoint
