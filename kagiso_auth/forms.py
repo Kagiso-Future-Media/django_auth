@@ -154,7 +154,7 @@ class SignUpForm(forms.Form):
 
 class ForgotPasswordForm(forms.Form):
     email = forms.EmailField(
-        label='Enter you email address'
+        label='Enter your email address'
     )
 
 
