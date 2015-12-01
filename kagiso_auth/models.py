@@ -34,10 +34,6 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
     objects = AuthManager()
 
-    def __init__(self, *args, **kwargs):
-        self._auth_api_client = AuthApiClient()
-        super().__init__(*args, **kwargs)
-
     def get_full_name(self):
         return self.email
 
@@ -58,10 +54,24 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         # Save them in memory only
         self.raw_password = raw_password
 
+    @staticmethod
+    def exists_in_auth_db(email):
+        endpoint = 'users/{email}'.format(email=email)
+        status, data = AuthApiClient.call(endpoint, 'GET')
+
+        if status == http.HTTP_200_OK:
+            user = KagisoUser()
+            user.build_from_auth_api_data(data)
+            return user
+        elif status == http.HTTP_404_NOT_FOUND:
+            return False
+        else:
+            raise AuthAPIUnexpectedStatusCode(status, data)
+
     def confirm_email(self, confirmation_token):
         payload = {'confirmation_token': confirmation_token}
         endpoint = 'confirm_email'
-        status, data = self._auth_api_client.call(endpoint, 'POST', payload)
+        status, data = AuthApiClient.call(endpoint, 'POST', payload)
 
         if not status == http.HTTP_200_OK:
             raise AuthAPIUnexpectedStatusCode(status, data)
@@ -72,7 +82,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
     def regenerate_confirmation_token(self):
         endpoint = 'users/{email}/confirmation_token'.format(email=self.email)
-        status, data = self._auth_api_client.call(endpoint, 'GET')
+        status, data = AuthApiClient.call(endpoint, 'GET')
 
         if not status == http.HTTP_200_OK:
             raise AuthAPIUnexpectedStatusCode(status, data)
@@ -82,7 +92,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
     def generate_reset_password_token(self):
         endpoint = 'reset_password/{email}'.format(email=self.email)
-        status, data = self._auth_api_client.call(endpoint, 'GET')
+        status, data = AuthApiClient.call(endpoint, 'GET')
 
         if not status == http.HTTP_200_OK:
             raise AuthAPIUnexpectedStatusCode(status, data)
@@ -95,7 +105,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             'password': password,
         }
         endpoint = 'reset_password/{email}'.format(email=self.email)
-        status, data = self._auth_api_client.call(endpoint, 'POST', payload)
+        status, data = AuthApiClient.call(endpoint, 'POST', payload)
 
         if not status == http.HTTP_200_OK:
             raise AuthAPIUnexpectedStatusCode(status, data)
@@ -104,7 +114,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
     def record_sign_out(self):
         endpoint = 'sessions/{id}'.format(id=self.id)
-        status, data = self._auth_api_client.call(endpoint, 'DELETE')
+        status, data = AuthApiClient.call(endpoint, 'DELETE')
 
         if not status == http.HTTP_200_OK:
             raise AuthAPIUnexpectedStatusCode(status, data)
@@ -136,7 +146,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             'created_via': self.created_via
         }
 
-        status, data = self._auth_api_client.call('users', 'POST', payload)
+        status, data = AuthApiClient.call('users', 'POST', payload)
 
         if status not in (http.HTTP_201_CREATED, http.HTTP_409_CONFLICT):
             raise AuthAPIUnexpectedStatusCode(status, data)
@@ -158,7 +168,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             'last_sign_in_via': self.last_sign_in_via
         }
 
-        status, data = self._auth_api_client.call(
+        status, data = AuthApiClient.call(
             'users/{id}'.format(id=self.id), 'PUT', payload)
 
         if status == http.HTTP_200_OK:
@@ -184,7 +194,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
 
 @receiver(pre_delete, sender=KagisoUser)
 def delete_user_from_auth_api(sender, instance, *args, **kwargs):
-    status, data = instance._auth_api_client.call(
+    status, data = AuthApiClient.call(
         'users/{id}'.format(id=instance.id), 'DELETE')
 
     # It is possible but unlikely that a user exists locally but not on AuthAPI

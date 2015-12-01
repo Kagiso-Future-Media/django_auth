@@ -14,18 +14,15 @@ class AuthApiClient:
 
     BASE_URL = settings.AUTH_API_BASE_URL
     TIMEOUT_IN_SECONDS = 6
+    AUTH_API_TOKEN = settings.AUTH_API_TOKEN
 
-    def __init__(self):
-        self._auth_api_token = settings.AUTH_API_TOKEN
-
-    def call(self, endpoint, method='GET', payload=None):
+    @classmethod
+    def call(cls, endpoint, method='GET', payload=None):
         auth_headers = {
-            'AUTHORIZATION': 'Token {0}'.format(self._auth_api_token),
+            'AUTHORIZATION': 'Token {0}'.format(cls.AUTH_API_TOKEN),
         }
-        print(self._auth_api_token)
-        print(self.BASE_URL)
         url = '{base_url}/{endpoint}/.json'.format(
-            base_url=self.BASE_URL,
+            base_url=cls.BASE_URL,
             endpoint=endpoint
         )
 
@@ -35,7 +32,7 @@ class AuthApiClient:
                 url,
                 headers=auth_headers,
                 json=payload,
-                timeout=self.TIMEOUT_IN_SECONDS
+                timeout=cls.TIMEOUT_IN_SECONDS
             )
         except requests.exceptions.ConnectionError as e:
             raise AuthAPINetworkError from e
