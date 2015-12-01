@@ -67,7 +67,7 @@ class TestSignUpForm:
 
         assert form.is_valid()
 
-        user = form.save()
+        user = form.save(app_name=settings.APP_NAME)
 
         assert user.email == data['email']
         assert user.first_name == data['first_name']
@@ -97,7 +97,7 @@ class TestSignUpForm:
         form = forms.SignUpForm.create(post_data=data, oauth_data=data)
         assert form.is_valid()
 
-        user = form.save()
+        user = form.save(app_name=settings.APP_NAME)
 
         assert user.email == data['email']
         assert user.email_confirmed

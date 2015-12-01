@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from . import forms
 from .exceptions import EmailNotConfirmedError
 from .models import KagisoUser
+from .utils import get_setting
 
 
 @never_cache
@@ -40,7 +41,9 @@ def sign_up(request):
 
         if form.is_valid():
             try:
-                user = form.save()
+                user = form.save(
+                    app_name=get_setting(settings.APP_NAME, request)
+                )
             except IntegrityError:
                 messages.error(request, error_message)
                 return HttpResponseRedirect(reverse('sign_in'))
@@ -66,7 +69,7 @@ def sign_up(request):
 
 def _send_confirmation_email(user, request):
     msg = EmailMessage()
-    msg.template_name = settings.SIGN_UP_EMAIL_TEMPLATE
+    msg.template_name = get_setting(settings.SIGN_UP_EMAIL_TEMPLATE, request)
     msg.from_email = 'noreply@kagisomedia.co.za'
     msg.subject = 'Confirm Your Account'
     msg.to = [user.email]
@@ -145,8 +148,8 @@ def sign_in(request):
 def oauth(request, provider):
     response = HttpResponse()
     authomatic = Authomatic(
-        settings.AUTHOMATIC_CONFIG,
-        settings.SECRET_KEY
+        get_setting(settings.AUTHOMATIC_CONFIG, request),
+        get_setting(settings.SECRET_KEY, request)
     )
     result = authomatic.login(DjangoAdapter(request, response), provider)
 
@@ -229,7 +232,10 @@ def forgot_password(request):
 
             if user:
                 msg = EmailMessage()
-                msg.template_name = settings.PASSWORD_RESET_EMAIL_TEMPLATE
+                msg.template_name = get_setting(
+                    settings.PASSWORD_RESET_EMAIL_TEMPLATE,
+                    request
+                )
                 msg.from_email = 'noreply@kagisomedia.co.za'
                 msg.subject = 'Password Reset'
                 msg.to = [user.email]

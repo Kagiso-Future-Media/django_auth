@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from django import forms
-from django.conf import settings
 from django.forms.extras import widgets
 from django.utils import timezone
 
@@ -119,7 +118,7 @@ class SignUpForm(forms.Form):
         validate_passwords_match(self)
         return self.cleaned_data
 
-    def save(self):
+    def save(self, app_name):
         user = KagisoUser()
         user.email = self.cleaned_data['email']
 
@@ -137,7 +136,7 @@ class SignUpForm(forms.Form):
             'birth_date': str(self.cleaned_data['birth_date']),
             'alerts': self.cleaned_data['alerts'],
         }
-        user.created_via = settings.APP_NAME
+        user.created_via = app_name
 
         user.save()
         return user
