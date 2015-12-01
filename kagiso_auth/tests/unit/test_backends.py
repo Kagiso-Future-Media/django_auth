@@ -69,15 +69,7 @@ class KagisoBackendTest(TestCase):
         assert len(responses.calls) == 2
         assert responses.calls[0].request.url == session_url
 
-        assert result.id == data['id']
         assert result.email == data['email']
-        assert result.first_name == data['first_name']
-        assert result.last_name == data['last_name']
-        assert result.is_staff == data['is_staff']
-        assert result.is_superuser == data['is_superuser']
-        assert result.profile == data['profile']
-        assert result.created_via == settings.APP_NAME
-        assert result.last_sign_in_via == settings.APP_NAME
 
     @responses.activate
     def test_authenticate_invalid_status_code_raises(self):

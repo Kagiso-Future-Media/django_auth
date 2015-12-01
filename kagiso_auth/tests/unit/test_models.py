@@ -2,13 +2,15 @@ from dateutil import parser
 from django.conf import settings
 from django.db.utils import IntegrityError
 from django.test import TestCase
+from django.utils import timezone
 from model_mommy import mommy
 import pytest
 import responses
 
 from . import mocks
-from ... import http, models
+from ... import http
 from ...exceptions import AuthAPIUnexpectedStatusCode
+from ...models import KagisoUser
 
 
 class KagisoUserTest(TestCase):
@@ -42,7 +44,7 @@ class KagisoUserTest(TestCase):
         # ------------------------
 
         user = mommy.make(
-            models.KagisoUser,
+            KagisoUser,
             id=None,
             email=email,
             first_name=first_name,
@@ -59,7 +61,7 @@ class KagisoUserTest(TestCase):
         # Confirmation tokens are saved in memory only.
         assert user.confirmation_token == api_data['confirmation_token']
 
-        result = models.KagisoUser.objects.get(id=user.id)
+        result = KagisoUser.objects.get(id=user.id)
 
         assert len(responses.calls) == 1
         assert responses.calls[0].request.url == url
@@ -99,7 +101,7 @@ class KagisoUserTest(TestCase):
 
         with pytest.raises(IntegrityError):
             mommy.make(
-                models.KagisoUser,
+                KagisoUser,
                 id=None,
                 email=email,
             )
@@ -115,7 +117,7 @@ class KagisoUserTest(TestCase):
 
         with pytest.raises(AuthAPIUnexpectedStatusCode):
             mommy.make(
-                models.KagisoUser,
+                KagisoUser,
                 id=None,
                 email=email,
             )
@@ -127,7 +129,7 @@ class KagisoUserTest(TestCase):
         # ------------------------
         mocks.post_users(1, 'test@email.com')
 
-        user = mommy.make(models.KagisoUser, id=None)
+        user = mommy.make(KagisoUser, id=None)
 
         email = 'test@email.com'
         first_name = 'Fred'
@@ -165,7 +167,7 @@ class KagisoUserTest(TestCase):
         # ------------------------
         # -------Assert----------
         # ------------------------
-        result = models.KagisoUser.objects.get(id=user.id)
+        result = KagisoUser.objects.get(id=user.id)
 
         assert len(responses.calls) == 2
         assert responses.calls[1].request.url == url
@@ -187,7 +189,7 @@ class KagisoUserTest(TestCase):
         # ------------------------
         post_url, _ = mocks.post_users(1, 'test@email.com')
 
-        user = mommy.make(models.KagisoUser, id=None)
+        user = mommy.make(KagisoUser, id=None)
 
         email = 'test@email.com'
         data = {
@@ -222,7 +224,7 @@ class KagisoUserTest(TestCase):
         # ------------------------
         # -------Assert----------
         # ------------------------
-        result = models.KagisoUser.objects.get(id=user.id)
+        result = KagisoUser.objects.get(id=user.id)
 
         assert len(responses.calls) == 3
         last_api_call = responses.calls[-1].request
@@ -240,7 +242,7 @@ class KagisoUserTest(TestCase):
     @responses.activate
     def test_update_invalid_status_code_raises(self):
         mocks.post_users(1, 'test@email.com')
-        user = mommy.make(models.KagisoUser, id=None)
+        user = mommy.make(KagisoUser, id=None)
         email = 'test@email.com'
         url, api_data = mocks.put_users(
             1, email, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -253,12 +255,12 @@ class KagisoUserTest(TestCase):
     @responses.activate
     def test_delete(self):
         mocks.post_users(1, 'test@email.com')
-        user = mommy.make(models.KagisoUser, id=None)
+        user = mommy.make(KagisoUser, id=None)
         url = mocks.delete_users(user.id)
 
         user.delete()
 
-        user_deleted = not models.KagisoUser.objects.filter(
+        user_deleted = not KagisoUser.objects.filter(
             id=user.id).exists()
 
         assert len(responses.calls) == 2
@@ -269,7 +271,7 @@ class KagisoUserTest(TestCase):
     @responses.activate
     def test_delete_invalid_status_code_raises(self):
         mocks.post_users(1, 'test@email.com')
-        user = mommy.make(models.KagisoUser, id=None)
+        user = mommy.make(KagisoUser, id=None)
         mocks.delete_users(
             user.id, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -278,18 +280,18 @@ class KagisoUserTest(TestCase):
 
     def test_get_full_name_returns_email(self):
         email = 'test@email.com'
-        user = models.KagisoUser(email=email)
+        user = KagisoUser(email=email)
 
         assert user.get_full_name() == email
 
     def test_get_short_name_returns_email(self):
         email = 'test@email.com'
-        user = models.KagisoUser(email=email)
+        user = KagisoUser(email=email)
 
         assert user.get_short_name() == email
 
     def test_set_password(self):
-        user = models.KagisoUser()
+        user = KagisoUser()
         password = 'my_password'
 
         user.set_password(password)
@@ -298,13 +300,13 @@ class KagisoUserTest(TestCase):
 
     def test_get_username_returns_email(self):
         email = 'test@email.com'
-        user = models.KagisoUser(email=email)
+        user = KagisoUser(email=email)
 
         assert user.username == email
 
     def test_set_username_sets_username(self):
         username = 'test@username.com'
-        user = models.KagisoUser(username=username)
+        user = KagisoUser(username=username)
 
         assert user.email == username
 
@@ -313,7 +315,7 @@ class KagisoUserTest(TestCase):
         email = 'test@email.com'
         url, _ = mocks.get_user_by_email(1, email)
 
-        result = models.KagisoUser.exists_in_auth_db(email)
+        result = KagisoUser.exists_in_auth_db(email)
 
         assert len(responses.calls) == 1
         assert responses.calls[0].request.url == url
@@ -325,7 +327,7 @@ class KagisoUserTest(TestCase):
         email = 'test@email.com'
         url, _ = mocks.get_user_by_email(1, email, http.HTTP_404_NOT_FOUND)
 
-        result = models.KagisoUser.exists_in_auth_db(email)
+        result = KagisoUser.exists_in_auth_db(email)
 
         assert len(responses.calls) == 1
         assert responses.calls[0].request.url == url
@@ -342,12 +344,44 @@ class KagisoUserTest(TestCase):
         )
 
         with pytest.raises(AuthAPIUnexpectedStatusCode):
-            models.KagisoUser.exists_in_auth_db(email)
+            KagisoUser.exists_in_auth_db(email)
+
+    @responses.activate
+    def test_sync_from_auth_db_locally_syncs_if_no_local_user(self):
+        email = 'test@email.com'
+
+        data = {
+            'id': 55,
+            'email': email,
+            'first_name': 'Fred',
+            'last_name': 'Smith',
+            'is_staff': True,
+            'is_superuser': True,
+            'profile': {'age': 40, },
+            'created': str(timezone.now()),
+            'modified': str(timezone.now()),
+            'created_via': settings.APP_NAME,
+            'last_sign_in_via': settings.APP_NAME
+        }
+
+        KagisoUser.sync_from_auth_db_locally(data)
+
+        result = KagisoUser.objects.get(email=email)
+
+        assert result.id == data['id']
+        assert result.email == data['email']
+        assert result.first_name == data['first_name']
+        assert result.last_name == data['last_name']
+        assert result.is_staff == data['is_staff']
+        assert result.is_superuser == data['is_superuser']
+        assert result.profile == data['profile']
+        assert result.created_via == settings.APP_NAME
+        assert result.last_sign_in_via == settings.APP_NAME
 
     @responses.activate
     def test_confirm_email(self):
         _, post_data = mocks.post_users(1, 'test@email.com')
-        user = mommy.make(models.KagisoUser, id=None)
+        user = mommy.make(KagisoUser, id=None)
         mocks.put_users(
             user.id,
             user.email,
@@ -361,7 +395,7 @@ class KagisoUserTest(TestCase):
         # Create user, confirm user, update user...
         assert responses.calls[1].request.url == url
 
-        result = models.KagisoUser.objects.get(id=user.id)
+        result = KagisoUser.objects.get(id=user.id)
 
         assert result.email_confirmed
         assert not result.confirmation_token
@@ -369,7 +403,7 @@ class KagisoUserTest(TestCase):
     @responses.activate
     def test_confirm_email_invalid_status_code_raises(self):
         _, post_data = mocks.post_users(1, 'test@email.com')
-        user = mommy.make(models.KagisoUser, id=None)
+        user = mommy.make(KagisoUser, id=None)
         mocks.put_users(
             user.id,
             user.email,
@@ -386,7 +420,7 @@ class KagisoUserTest(TestCase):
     @responses.activate
     def test_regenerate_confirmation_token(self):
         _, post_data = mocks.post_users(1, 'test@email.com')
-        user = mommy.make(models.KagisoUser, id=None)
+        user = mommy.make(KagisoUser, id=None)
         url, data = mocks.get_regenerate_confirmation_token(
             user.email)
 
@@ -400,7 +434,7 @@ class KagisoUserTest(TestCase):
     @responses.activate
     def test_regenerate_confirmation_token_raises(self):
         _, post_data = mocks.post_users(1, 'test@email.com')
-        user = mommy.make(models.KagisoUser, id=None)
+        user = mommy.make(KagisoUser, id=None)
         url, data = mocks.get_regenerate_confirmation_token(
             user.email,
             http.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -412,7 +446,7 @@ class KagisoUserTest(TestCase):
     @responses.activate
     def test_generate_reset_password_token(self):
         _, post_data = mocks.post_users(1, 'test@email.com')
-        user = mommy.make(models.KagisoUser, id=None)
+        user = mommy.make(KagisoUser, id=None)
         url, data = mocks.get_reset_password(user.email)
 
         reset_password_token = user.generate_reset_password_token()
@@ -425,7 +459,7 @@ class KagisoUserTest(TestCase):
     @responses.activate
     def test_generate_reset_password_token_invalid_status_raises(self):
         _, post_data = mocks.post_users(1, 'test@email.com')
-        user = mommy.make(models.KagisoUser, id=None)
+        user = mommy.make(KagisoUser, id=None)
         url, data = mocks.get_reset_password(
             user.email, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -436,7 +470,7 @@ class KagisoUserTest(TestCase):
     @responses.activate
     def test_reset_password(self):
         _, post_data = mocks.post_users(1, 'test@email.com')
-        user = mommy.make(models.KagisoUser, id=None)
+        user = mommy.make(KagisoUser, id=None)
         url = mocks.post_reset_password(user.email)
 
         did_password_reset = user.reset_password('new_password', 'test_token')
@@ -449,7 +483,7 @@ class KagisoUserTest(TestCase):
     @responses.activate
     def test_reset_password_invalid_status_code_raises(self):
         _, post_data = mocks.post_users(1, 'test@email.com')
-        user = mommy.make(models.KagisoUser, id=None)
+        user = mommy.make(KagisoUser, id=None)
         mocks.post_reset_password(
             user.email, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -465,7 +499,7 @@ class KagisoUserTest(TestCase):
     def test_record_sign_out(self):
         id = 1
         _, post_data = mocks.post_users(id, 'test@email.com')
-        user = mommy.make(models.KagisoUser, id=None)
+        user = mommy.make(KagisoUser, id=None)
         url = mocks.delete_sessions(id)
 
         did_sign_out = user.record_sign_out()
@@ -479,7 +513,7 @@ class KagisoUserTest(TestCase):
     def test_record_sign_out_invalid_status_code_raises(self):
         id = 1
         _, post_data = mocks.post_users(id, 'test@email.com')
-        user = mommy.make(models.KagisoUser, id=None)
+        user = mommy.make(KagisoUser, id=None)
         mocks.delete_sessions(
             id, status=http.HTTP_500_INTERNAL_SERVER_ERROR)
 

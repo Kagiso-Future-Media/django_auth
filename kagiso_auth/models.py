@@ -60,13 +60,28 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         status, data = AuthApiClient.call(endpoint, 'GET')
 
         if status == http.HTTP_200_OK:
-            user = KagisoUser()
-            user.build_from_auth_api_data(data)
+            user = KagisoUser.objects.filter(email=email).first()
+            if not user:
+                user = KagisoUser.sync_from_auth_db_locally(data)
             return user
         elif status == http.HTTP_404_NOT_FOUND:
             return False
         else:
             raise AuthAPIUnexpectedStatusCode(status, data)
+
+    @staticmethod
+    def sync_from_auth_db_locally(data):
+        try:
+            pre_save.disconnect(
+                save_user_to_auth_api,
+                sender=KagisoUser
+            )
+            user = KagisoUser()
+            user.build_from_auth_api_data(data)
+            user.save()
+            return user
+        finally:
+            pre_save.connect(save_user_to_auth_api, sender=KagisoUser)
 
     def confirm_email(self, confirmation_token):
         payload = {'confirmation_token': confirmation_token}
@@ -133,6 +148,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         self.created = parser.parse(data['created'])
         self.created_via = data.get('created_via')
         self.modified = parser.parse(data['modified'])
+        self.last_sign_in_via = data.get('last_sign_in_via')
 
     def _create_user_in_db_and_auth_api(self):
         payload = {
