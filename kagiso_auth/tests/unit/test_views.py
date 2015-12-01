@@ -181,8 +181,13 @@ class SignInTest(TestCase):
 
 class OauthTest(TestCase):
 
+    @patch('kagiso_auth.views.KagisoUser', autospec=True)
     @patch('kagiso_auth.views.Authomatic', autospec=True)
-    def test_new_user_redirects_to_sign_up_page(self, MockAuthomatic):  # noqa
+    def test_new_user_redirects_to_sign_up_page(  # noqa
+        self,
+        MockAuthomatic,
+        MockKagisoUser):
+
         oauth_data = {
             'email': 'test@email.com',
             'first_name': 'Fred',
@@ -204,6 +209,8 @@ class OauthTest(TestCase):
         mock_authomatic = MagicMock()
         mock_authomatic.login.return_value = mock_result
         MockAuthomatic.return_value = mock_authomatic
+
+        MockKagisoUser.exists_in_auth_db.return_value = False
 
         response = self.client.get('/oauth/facebook/', follow=True)
 
@@ -295,7 +302,9 @@ class ForgotPasswordTest(TestCase):
         assert response.status_code == 200
         assert b'<h1>Forgot Password</h1>' in response.content
 
-    def test_forgot_password_post_user_not_found(self):
+    @patch('kagiso_auth.views.KagisoUser', autospec=True)
+    def test_forgot_password_post_user_not_found(self, MockKagisoUser):  # noqa
+        MockKagisoUser.exists_in_auth_db.return_value = False
         data = {'email': 'no@user.com'}
 
         response = self.client.post('/forgot_password/', data, follow=True)
@@ -308,12 +317,10 @@ class ForgotPasswordTest(TestCase):
     def test_forgot_password_sends_reset_email(self, MockKagisoUser):  # noqa
         # ----- Arrange -----
         email = 'mock@user.com'
+
         user = KagisoUser(email=email)
         user.generate_reset_password_token = MagicMock(return_value='token')
-
-        mock_filter = MagicMock()
-        mock_filter.first.return_value = user
-        MockKagisoUser.objects.filter.return_value = mock_filter
+        MockKagisoUser.exists_in_auth_db.return_value = user
 
         data = {'email': email}
 
