@@ -31,6 +31,16 @@ Then specify that Django is to use the `KagisoUser` model as its user model.
 AUTH_USER_MODEL = 'kagiso_auth.KagisoUser'
 ```
 
+Then you will need to specify some other settings:
+```
+APP_NAME = 'Your app name'
+SIGN_UP_EMAIL_TEMPLATE = 'Name of your mailchimp template'
+PASSWORD_RESET_EMAIL_TEMPLATE = 'Name of your mailchimp template'
+AUTHOMATIC_CONFIG = {} # see http://peterhudec.github.io/authomatic/reference/config.html if you want social auth
+```
+Note that the above settings may use lambdas that receive the request as the sole argument if you wish to 
+make your settings depend on the request.
+
 If you want to use the generic auth UI for sign ups and password resets etc,
 add the following to your urls.py:
 
