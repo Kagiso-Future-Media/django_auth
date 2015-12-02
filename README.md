@@ -39,13 +39,12 @@ from kagiso_auth import urls as kagiso_auth_urls
 url(r'', include(kagiso_auth_urls)),
 ```
 
-Finally you need to add your CAS credentials to settings.py.
+Finally you need to add your Auth API (https://github.com/Kagiso-Future-Media/auth) credentials to settings.py.
 In production make sure you read them in from an environment variable.
 
 ```
-CAS_TOKEN = 'your-token'
-CAS_SOURCE_ID = 'your-source-id'
-CAS_BASE_URL (optional - defaults to https://auth.kagiso.io) = 'xyz'
+AUTH_API_TOKEN = 'your-token'
+AUTH_API_BASE_URL (optional - defaults to https://auth.kagiso.io) = 'xyz'
 ```
 
 ## Testing
