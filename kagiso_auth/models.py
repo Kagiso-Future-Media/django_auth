@@ -62,7 +62,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         if status == http.HTTP_200_OK:
             user = KagisoUser.objects.filter(email=email).first()
             if not user:
-                user = KagisoUser.sync_from_auth_db_locally(data)
+                user = KagisoUser.sync_user_data_locally(data)
             return user
         elif status == http.HTTP_404_NOT_FOUND:
             return None
@@ -70,13 +70,15 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
             raise AuthAPIUnexpectedStatusCode(status, data)
 
     @staticmethod
-    def sync_from_auth_db_locally(data):
+    def sync_user_data_locally(data):
         try:
             pre_save.disconnect(
                 save_user_to_auth_api,
                 sender=KagisoUser
             )
-            user = KagisoUser()
+            user = KagisoUser.objects.filter(
+                id=data['id']
+            ).first() or KagisoUser()
             user.build_from_auth_api_data(data)
             user.save()
             return user

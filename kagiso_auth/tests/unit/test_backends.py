@@ -30,7 +30,11 @@ class KagisoBackendTest(TestCase):
         )
 
         backend = KagisoBackend()
-        result = backend.authenticate(email=email, password=password)
+        result = backend.authenticate(
+            email=email,
+            password=password,
+            app_name=settings.APP_NAME
+        )
 
         assert len(responses.calls) == 3
         assert responses.calls[1].request.url == url
@@ -64,7 +68,11 @@ class KagisoBackendTest(TestCase):
         mocks.put_users(**data)
 
         backend = KagisoBackend()
-        result = backend.authenticate(email=email, password=password)
+        result = backend.authenticate(
+            email=email,
+            password=password,
+            app_name=settings.APP_NAME
+        )
 
         assert len(responses.calls) == 2
         assert responses.calls[0].request.url == session_url
@@ -83,7 +91,11 @@ class KagisoBackendTest(TestCase):
         backend = KagisoBackend()
 
         with pytest.raises(AuthAPIUnexpectedStatusCode):
-            backend.authenticate(email=email, password=password)
+            backend.authenticate(
+                email=email,
+                password=password,
+                app_name=settings.APP_NAME
+            )
 
     @responses.activate
     def test_authenticate_with_social_sign_in_returns_user(self):
@@ -97,7 +109,11 @@ class KagisoBackendTest(TestCase):
         mocks.put_users(1, email)
 
         backend = KagisoBackend()
-        result = backend.authenticate(email=email, strategy=strategy)
+        result = backend.authenticate(
+            email=email,
+            strategy=strategy,
+            app_name=settings.APP_NAME
+        )
 
         assert len(responses.calls) == 3
         assert responses.calls[1].request.url == url

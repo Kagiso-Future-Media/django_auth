@@ -38,9 +38,9 @@ class KagisoBackend(ModelBackend):
         if status == http.HTTP_200_OK:
             user = KagisoUser.objects.filter(id=data['id']).first()
             if not user:
-                user = KagisoUser.sync_from_auth_db_locally(data)
+                user = KagisoUser.sync_user_data_locally(data)
 
-            user.last_sign_in_via = settings.APP_NAME
+            user.last_sign_in_via = kwargs['app_name']
             user.save()
         elif status == http.HTTP_404_NOT_FOUND:
             return None

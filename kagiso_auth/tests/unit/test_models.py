@@ -347,7 +347,7 @@ class KagisoUserTest(TestCase):
             KagisoUser.get_user_from_auth_db(email)
 
     @responses.activate
-    def test_sync_from_auth_db_locally_syncs_if_no_local_user(self):
+    def test_sync_user_data_locally_syncs_if_no_local_user(self):
         email = 'test@email.com'
 
         data = {
@@ -364,7 +364,7 @@ class KagisoUserTest(TestCase):
             'last_sign_in_via': settings.APP_NAME
         }
 
-        KagisoUser.sync_from_auth_db_locally(data)
+        KagisoUser.sync_user_data_locally(data)
 
         result = KagisoUser.objects.get(email=email)
 

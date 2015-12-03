@@ -113,6 +113,7 @@ def sign_in(request):
                 user = authenticate(
                     email=email,
                     password=password,
+                    app_name=get_setting(settings.APP_NAME, request)
                 )
 
                 if user:
