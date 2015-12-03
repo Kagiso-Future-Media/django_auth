@@ -1,8 +1,9 @@
+from unittest.mock import patch
+
 from django.conf import settings
 from django.test import TestCase
 import pytest
 import responses
-from unittest.mock import patch
 
 from . import mocks
 from ... import http
