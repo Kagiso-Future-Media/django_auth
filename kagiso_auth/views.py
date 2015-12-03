@@ -113,10 +113,14 @@ def sign_in(request):
                 user = authenticate(
                     email=email,
                     password=password,
-                    app_name=get_setting(settings.APP_NAME, request)
                 )
 
                 if user:
+                    user.last_sign_in_via = get_setting(
+                        settings.APP_NAME,
+                        request
+                    )
+                    user.save()
                     response = HttpResponseRedirect('/')
                     response.set_cookie('signed_in',
                                         value='true',

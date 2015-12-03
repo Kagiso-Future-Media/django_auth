@@ -167,16 +167,16 @@ class SignInTest(TestCase):
     @patch('kagiso_auth.views.login', autospec=True)
     @patch('kagiso_auth.views.authenticate', autospec=True)
     def test_sign_in_valid_credentials(self, mock_authenticate, mock_login):
-        user = KagisoUser(email='test@email.com', password='password')
-        data = {'email': user.email, 'password': user.password}
-        mock_authenticate.return_value = user
+        mock_user = MagicMock()
+        data = {'email': 'test@email.com', 'password': 'secret'}
+        mock_authenticate.return_value = mock_user
 
         response = self.client.post('/sign_in/', data, follow=True)
 
         assert response.status_code == 200
         assert mock_authenticate.called
         assert mock_login.called
-        assert user.is_authenticated()
+        assert mock_user.is_authenticated()
 
 
 class OauthTest(TestCase):

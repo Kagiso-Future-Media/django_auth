@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
 
 from . import http
@@ -36,12 +35,7 @@ class KagisoBackend(ModelBackend):
         status, data = auth_api_client.call('sessions', 'POST', payload)
 
         if status == http.HTTP_200_OK:
-            user = KagisoUser.objects.filter(id=data['id']).first()
-            if not user:
-                user = KagisoUser.sync_user_data_locally(data)
-
-            user.last_sign_in_via = kwargs['app_name']
-            user.save()
+            user = KagisoUser.sync_user_data_locally(data)
         elif status == http.HTTP_404_NOT_FOUND:
             return None
         elif status == http.HTTP_422_UNPROCESSABLE_ENTITY:

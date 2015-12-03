@@ -2,6 +2,7 @@ from django.conf import settings
 from django.test import TestCase
 import pytest
 import responses
+from unittest.mock import patch
 
 from . import mocks
 from ... import http
@@ -13,19 +14,16 @@ from ...models import KagisoUser
 class KagisoBackendTest(TestCase):
 
     @responses.activate
-    def test_authenticate_valid_credentials_returns_user(self):
+    @patch('kagiso_auth.backends.KagisoUser', autospec=True)
+    def test_authenticate_valid_credentials_returns_user(self, MockKagisoUser):  # noqa
         email = 'test@email.com'
         password = 'random'
+        user = KagisoUser(email=email, password=password)
 
-        mocks.post_users(1, email)
-        user = KagisoUser.objects.create_user(email, password)
+        MockKagisoUser.sync_user_data_locally.return_value = user
+
         url, _ = mocks.post_sessions(
             http.HTTP_200_OK,
-            last_sign_in_via=settings.APP_NAME
-        )
-        mocks.put_users(
-            1,
-            email,
             last_sign_in_via=settings.APP_NAME
         )
 
@@ -33,15 +31,13 @@ class KagisoBackendTest(TestCase):
         result = backend.authenticate(
             email=email,
             password=password,
-            app_name=settings.APP_NAME
         )
 
-        assert len(responses.calls) == 3
-        assert responses.calls[1].request.url == url
+        assert len(responses.calls) == 1
+        assert responses.calls[0].request.url == url
 
         assert isinstance(result, KagisoUser)
         assert result.id == user.id
-        assert result.last_sign_in_via == settings.APP_NAME
 
     @responses.activate
     def test_authenticate_valid_credentials_creates_local_user_if_none(self):
@@ -60,21 +56,18 @@ class KagisoBackendTest(TestCase):
             'last_sign_in_via': settings.APP_NAME
         }
 
-        # _, api_data = mocks.post_users(1, email)
         session_url, data = mocks.post_sessions(
             http.HTTP_200_OK,
             **data
         )
-        mocks.put_users(**data)
 
         backend = KagisoBackend()
         result = backend.authenticate(
             email=email,
             password=password,
-            app_name=settings.APP_NAME
         )
 
-        assert len(responses.calls) == 2
+        assert len(responses.calls) == 1
         assert responses.calls[0].request.url == session_url
 
         assert result.email == data['email']
@@ -94,17 +87,18 @@ class KagisoBackendTest(TestCase):
             backend.authenticate(
                 email=email,
                 password=password,
-                app_name=settings.APP_NAME
             )
 
     @responses.activate
-    def test_authenticate_with_social_sign_in_returns_user(self):
+    @patch('kagiso_auth.backends.KagisoUser', autospec=True)
+    def test_authenticate_with_social_sign_in_returns_user(self, MockKagisoUser):  # noqa
         email = 'test@email.com'
+        password = 'secret'
         strategy = 'facebook'
-        mocks.post_users(1, email)
-        # Unusable password is saved locally for Django compliance
-        # It is not used for auth purposes though
-        user = KagisoUser.objects.create_user(email, password='unusable')
+        user = KagisoUser(email=email, password=password)
+
+        MockKagisoUser.sync_user_data_locally.return_value = user
+
         url, data = mocks.post_sessions(http.HTTP_200_OK)
         mocks.put_users(1, email)
 
@@ -112,11 +106,10 @@ class KagisoBackendTest(TestCase):
         result = backend.authenticate(
             email=email,
             strategy=strategy,
-            app_name=settings.APP_NAME
         )
 
-        assert len(responses.calls) == 3
-        assert responses.calls[1].request.url == url
+        assert len(responses.calls) == 1
+        assert responses.calls[0].request.url == url
 
         assert isinstance(result, KagisoUser)
         assert result.id == user.id
