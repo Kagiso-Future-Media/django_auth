@@ -2,6 +2,7 @@ from datetime import date
 from unittest.mock import patch
 
 from django import forms as django_forms
+from django.conf import settings
 
 from ... import forms
 
@@ -49,7 +50,7 @@ class TestSignUpForm:
         assert 'confirm_password' not in form.fields
 
     @patch('kagiso_auth.forms.KagisoUser', autospec=True)
-    def test_save_regular_sign_up_from_regular_django_site(self, MockKagisoUser):  # noqa
+    def test_save_regular_sign_up(self, MockKagisoUser):  # noqa
         data = {
             'email': 'bogus@email.com',
             'first_name': 'Fred',
@@ -66,7 +67,7 @@ class TestSignUpForm:
 
         assert form.is_valid()
 
-        user = form.save()
+        user = form.save(app_name=settings.APP_NAME)
 
         assert user.email == data['email']
         assert user.first_name == data['first_name']
@@ -76,31 +77,9 @@ class TestSignUpForm:
         assert user.profile['region'] == data['region']
         assert user.profile['birth_date'] == str(data['birth_date'])
         assert user.profile['alerts'] == data['alerts']
+        assert user.created_via == settings.APP_NAME
 
         user.set_password.assert_called_with(data['password'])
-
-    @patch('kagiso_auth.forms.KagisoUser', autospec=True)
-    def test_save_regular_sign_up_from_wagtail_site(self, MockKagisoUser):  # noqa
-        site_id = 55
-        data = {
-            'email': 'bogus@email.com',
-            'first_name': 'Fred',
-            'last_name': 'Smith',
-            'password': 'mypassword',
-            'confirm_password': 'mypassword',
-            'mobile': '123456789',
-            'gender': 'MALE',
-            'region': 'EASTERN_CAPE',
-            'birth_date': date(1980, 1, 31),
-            'alerts': ['EMAIL', 'SMS'],
-        }
-        form = forms.SignUpForm.create(post_data=data)
-        form.site_id = site_id
-        assert form.is_valid()
-
-        user = form.save()
-
-        assert user.profile['site_id'] == site_id
 
     @patch('kagiso_auth.forms.KagisoUser', autospec=True)
     def test_save_social_sign_up(self, MockKagisoUser):  # noqa
@@ -118,7 +97,7 @@ class TestSignUpForm:
         form = forms.SignUpForm.create(post_data=data, oauth_data=data)
         assert form.is_valid()
 
-        user = form.save()
+        user = form.save(app_name=settings.APP_NAME)
 
         assert user.email == data['email']
         assert user.email_confirmed
@@ -129,5 +108,6 @@ class TestSignUpForm:
         assert user.profile['region'] == data['region']
         assert user.profile['birth_date'] == str(data['birth_date'])
         assert user.profile['alerts'] == data['alerts']
+        assert user.created_via == settings.APP_NAME
 
         assert not user.set_password.called

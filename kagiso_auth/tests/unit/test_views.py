@@ -53,9 +53,10 @@ class SignUpTest(TestCase):
         assert mock_user.profile['birth_date'] == str(data['birth_date'])
         assert mock_user.profile['alerts'] == data['alerts']
 
-        assert 'You will receive an email with confirmation instructions shortly.' \
-            'This link will expire within 24 hours.' \
-            == message
+        assert (
+            'You will receive an email with confirmation instructions shortly. '  # noqa
+            'This link will expire within 24 hours.'
+        ) == message
 
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to[0] == mock_user.email
@@ -154,9 +155,10 @@ class SignInTest(TestCase):
         message = list(response.context['messages'])[0].message
 
         assert response.status_code == 200
-        assert 'You will receive an email with confirmation instructions shortly.' \
-            'This link will expire within 24 hours.'\
-            == message
+        assert (
+            'You will receive an email with confirmation instructions shortly. '  # noqa
+            'This link will expire within 24 hours.'
+        ) == message
 
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to[0] == email
@@ -165,26 +167,26 @@ class SignInTest(TestCase):
     @patch('kagiso_auth.views.login', autospec=True)
     @patch('kagiso_auth.views.authenticate', autospec=True)
     def test_sign_in_valid_credentials(self, mock_authenticate, mock_login):
-        user = KagisoUser(email='test@email.com', password='password')
-        data = {'email': user.email, 'password': user.password}
-        mock_authenticate.return_value = user
+        mock_user = MagicMock()
+        data = {'email': 'test@email.com', 'password': 'secret'}
+        mock_authenticate.return_value = mock_user
 
         response = self.client.post('/sign_in/', data, follow=True)
 
         assert response.status_code == 200
         assert mock_authenticate.called
         assert mock_login.called
-        assert user.is_authenticated()
+        assert mock_user.is_authenticated()
 
 
 class OauthTest(TestCase):
 
-    @patch('kagiso_auth.views.RequestContext', autospec=True)
+    @patch('kagiso_auth.views.KagisoUser', autospec=True)
     @patch('kagiso_auth.views.Authomatic', autospec=True)
     def test_new_user_redirects_to_sign_up_page(  # noqa
-            self, MockAuthomatic, MockRequestContext):
-
-        MockRequestContext.return_value = {'site_name': 'jacaranda'}
+        self,
+        MockAuthomatic,
+        MockKagisoUser):
 
         oauth_data = {
             'email': 'test@email.com',
@@ -208,6 +210,8 @@ class OauthTest(TestCase):
         mock_authomatic.login.return_value = mock_result
         MockAuthomatic.return_value = mock_authomatic
 
+        MockKagisoUser.get_user_from_auth_db.return_value = None
+
         response = self.client.get('/oauth/facebook/', follow=True)
 
         # Social sign up should prefill sign up form
@@ -221,22 +225,16 @@ class OauthTest(TestCase):
     @patch('kagiso_auth.views.authenticate', autospec=True)
     @patch('kagiso_auth.views.login', autospec=True)
     @patch('kagiso_auth.views.KagisoUser', autospec=True)
-    @patch('kagiso_auth.views.RequestContext', autospec=True)
     @patch('kagiso_auth.views.Authomatic', autospec=True)
     def test_existing_user_gets_signed_in(  # noqa
             self,
             MockAuthomatic,
-            MockRequestContext,
             MockKagisoUser,
             mock_login,
             mock_authenticate):
 
         user = KagisoUser(email='test@email.com')
         user.save = MagicMock()
-        # Raw returns a QuerySet...
-        MockKagisoUser.objects.raw.return_value = [user]
-
-        MockRequestContext.return_value = {'site_name': 'jacaranda'}
 
         mock_result = MagicMock()
         mock_result.error = None
@@ -253,13 +251,32 @@ class OauthTest(TestCase):
         assert mock_login.called
         assert mock_authenticate.called
 
+    @patch('kagiso_auth.views.authenticate', autospec=True)
+    @patch('kagiso_auth.views.login', autospec=True)
+    @patch('kagiso_auth.views.KagisoUser', autospec=True)
+    @patch('kagiso_auth.views.Authomatic', autospec=True)
+    def test_oauth_error_redirects_to_sign_in_page(  # noqa
+            self,
+            MockAuthomatic,
+            MockKagisoUser,
+            mock_login,
+            mock_authenticate):
+
+        user = KagisoUser(email='test@email.com')
+        user.save = MagicMock()
+
+        mock_result = MagicMock()
+        mock_result.error = True
+
+        response = self.client.get('/oauth/facebook/', follow=True)
+
+        self.assertRedirects(response, '/sign_in/')
+
 
 class SignOutTest(TestCase):
 
-    @patch('kagiso_auth.views.RequestContext', autospec=True)
     @patch('kagiso_auth.views.logout', autospec=True)
-    def test_sign_out(self, mock_logout, MockRequestContext):  # noqa
-        MockRequestContext.return_value = {'site_name': 'jacaranda'}
+    def test_sign_out(self, mock_logout):
         site = MagicMock()
         site.hostname = 'jacarandafm.com'
         user = KagisoUser()
@@ -285,7 +302,9 @@ class ForgotPasswordTest(TestCase):
         assert response.status_code == 200
         assert b'<h1>Forgot Password</h1>' in response.content
 
-    def test_forgot_password_post_user_not_found(self):
+    @patch('kagiso_auth.views.KagisoUser', autospec=True)
+    def test_forgot_password_post_user_not_found(self, MockKagisoUser):  # noqa
+        MockKagisoUser.get_user_from_auth_db.return_value = None
         data = {'email': 'no@user.com'}
 
         response = self.client.post('/forgot_password/', data, follow=True)
@@ -298,12 +317,10 @@ class ForgotPasswordTest(TestCase):
     def test_forgot_password_sends_reset_email(self, MockKagisoUser):  # noqa
         # ----- Arrange -----
         email = 'mock@user.com'
+
         user = KagisoUser(email=email)
         user.generate_reset_password_token = MagicMock(return_value='token')
-
-        mock_filter = MagicMock()
-        mock_filter.first.return_value = user
-        MockKagisoUser.objects.filter.return_value = mock_filter
+        MockKagisoUser.get_user_from_auth_db.return_value = user
 
         data = {'email': email}
 

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.test import TestCase
 from model_mommy import mommy
 import pytest
@@ -24,9 +25,8 @@ class KagisoUserTest(TestCase):
             email=email,
             first_name='George',
             last_name='Smith',
-            is_staff=True,
-            is_superuser=True,
             profile=profile,
+            created_via=settings.APP_NAME
         )
         user.set_password(password)
         user.save()
@@ -38,10 +38,9 @@ class KagisoUserTest(TestCase):
         assert result.email == user.email
         assert result.first_name == user.first_name
         assert result.last_name == user.last_name
-        assert result.is_staff
-        assert result.is_superuser
         assert not result.confirmation_token
         assert result.profile == profile
+        assert result.created_via == user.created_via
 
         # ----- Unconfirmed users can't sign in -----
         with pytest.raises(EmailNotConfirmedError):
@@ -65,6 +64,7 @@ class KagisoUserTest(TestCase):
             password=password
         )
         assert signed_in_user == user
+        assert signed_in_user.last_sign_in_via == settings.APP_NAME
 
         # ----- Update user -----
         new_email = utils.random_email()

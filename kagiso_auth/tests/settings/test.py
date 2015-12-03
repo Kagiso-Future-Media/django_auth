@@ -5,8 +5,7 @@ DEBUG = True
 SECRET_KEY = '^7jcx7^h#b@%a76lr@a2!7xj#@4@5ayuyan9c$y#(_(8l3)_%t'
 UNIT_TEST_SETTINGS = True
 
-JAC_CAS_TOKEN = 'xyz'
-JAC_CAS_SOURCE_ID = 'xyz'
+AUTH_API_TOKEN = 'xyz'
 
 INSTALLED_APPS = (
     'django.contrib.admin',
@@ -84,7 +83,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
+
+APP_NAME = 'Test App'
 AUTH_USER_MODEL = 'kagiso_auth.KagisoUser'
+SIGN_UP_EMAIL_TEMPLATE = 'xyz'
+PASSWORD_RESET_EMAIL_TEMPLATE = 'xyz'
 
 # Authomatic is mocked out in the tests, but a key lookup is still
 # performed to get settings, so pass a stub back

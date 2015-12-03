@@ -1,10 +1,9 @@
 from django.contrib.auth.backends import ModelBackend
-from django.db.models.signals import pre_save
 
 from . import http
 from .auth_api_client import AuthApiClient
-from .exceptions import CASUnexpectedStatusCode, EmailNotConfirmedError
-from .models import KagisoUser, save_user_to_cas
+from .exceptions import AuthAPIUnexpectedStatusCode, EmailNotConfirmedError
+from .models import KagisoUser
 
 
 class KagisoBackend(ModelBackend):
@@ -17,8 +16,6 @@ class KagisoBackend(ModelBackend):
     # Django AllAuth does this:
     #  credentials = {'email': 'test@kagiso.io, 'password': 'open'}
     def authenticate(self, email=None, username=None, password=None, **kwargs):
-        cas_credentials = kwargs.get('cas_credentials')
-
         email = username if not email else email
 
         payload = {
@@ -34,29 +31,16 @@ class KagisoBackend(ModelBackend):
         if strategy:
             payload['strategy'] = strategy
 
-        auth_api_client = AuthApiClient(cas_credentials)
+        auth_api_client = AuthApiClient()
         status, data = auth_api_client.call('sessions', 'POST', payload)
 
         if status == http.HTTP_200_OK:
-            local_user = KagisoUser.objects.filter(id=data['id']).first()
-            if local_user:
-                local_user.override_cas_credentials(cas_credentials)
-            else:
-                try:
-                    # Do not on save sync to CAS, as we just got the user's
-                    # data from CAS, and nothing has changed in the interim
-                    pre_save.disconnect(save_user_to_cas, sender=KagisoUser)
-                    local_user = KagisoUser()
-                    local_user.set_password(password)
-                    local_user.build_from_cas_data(data)
-                    local_user.save()
-                finally:
-                    pre_save.connect(save_user_to_cas, sender=KagisoUser)
+            user = KagisoUser.sync_user_data_locally(data)
         elif status == http.HTTP_404_NOT_FOUND:
             return None
         elif status == http.HTTP_422_UNPROCESSABLE_ENTITY:
             raise EmailNotConfirmedError()
         else:
-            raise CASUnexpectedStatusCode(status, data)
+            raise AuthAPIUnexpectedStatusCode(status, data)
 
-        return local_user
+        return user

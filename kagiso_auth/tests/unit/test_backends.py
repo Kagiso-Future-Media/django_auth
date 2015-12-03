@@ -1,3 +1,6 @@
+from unittest.mock import patch
+
+from django.conf import settings
 from django.test import TestCase
 import pytest
 import responses
@@ -5,33 +8,34 @@ import responses
 from . import mocks
 from ... import http
 from ...backends import KagisoBackend
-from ...exceptions import CASUnexpectedStatusCode, EmailNotConfirmedError
+from ...exceptions import AuthAPIUnexpectedStatusCode, EmailNotConfirmedError
 from ...models import KagisoUser
 
 
 class KagisoBackendTest(TestCase):
 
     @responses.activate
-    def test_authenticate_valid_credentials_returns_user(self):
+    @patch('kagiso_auth.backends.KagisoUser', autospec=True)
+    def test_authenticate_valid_credentials_returns_user(self, MockKagisoUser):  # noqa
         email = 'test@email.com'
         password = 'random'
-        profile = {
-            'first_name': 'Fred'
-        }
-        mocks.post_users(
-            1,
-            email,
-            profile=profile
+        user = KagisoUser(email=email, password=password)
+
+        MockKagisoUser.sync_user_data_locally.return_value = user
+
+        url, _ = mocks.post_sessions(
+            http.HTTP_200_OK,
+            last_sign_in_via=settings.APP_NAME
         )
-        user = KagisoUser.objects.create_user(
-            email, password, profile=profile)
-        url, _ = mocks.post_sessions(http.HTTP_200_OK)
 
         backend = KagisoBackend()
-        result = backend.authenticate(email=email, password=password)
+        result = backend.authenticate(
+            email=email,
+            password=password,
+        )
 
-        assert len(responses.calls) == 2
-        assert responses.calls[1].request.url == url
+        assert len(responses.calls) == 1
+        assert responses.calls[0].request.url == url
 
         assert isinstance(result, KagisoUser)
         assert result.id == user.id
@@ -49,27 +53,25 @@ class KagisoBackendTest(TestCase):
             'is_staff': True,
             'is_superuser': True,
             'profile': {'age': 40, },
+            'created_via': settings.APP_NAME,
+            'last_sign_in_via': settings.APP_NAME
         }
 
-        _, api_data = mocks.post_users(1, email)
         session_url, data = mocks.post_sessions(
             http.HTTP_200_OK,
             **data
         )
 
         backend = KagisoBackend()
-        result = backend.authenticate(email=email, password=password)
+        result = backend.authenticate(
+            email=email,
+            password=password,
+        )
 
         assert len(responses.calls) == 1
         assert responses.calls[0].request.url == session_url
 
-        assert result.id == data['id']
         assert result.email == data['email']
-        assert result.first_name == data['first_name']
-        assert result.last_name == data['last_name']
-        assert result.is_staff == data['is_staff']
-        assert result.is_superuser == data['is_superuser']
-        assert result.profile == data['profile']
 
     @responses.activate
     def test_authenticate_invalid_status_code_raises(self):
@@ -82,24 +84,33 @@ class KagisoBackendTest(TestCase):
 
         backend = KagisoBackend()
 
-        with pytest.raises(CASUnexpectedStatusCode):
-            backend.authenticate(email=email, password=password)
+        with pytest.raises(AuthAPIUnexpectedStatusCode):
+            backend.authenticate(
+                email=email,
+                password=password,
+            )
 
     @responses.activate
-    def test_authenticate_with_social_sign_in_returns_user(self):
+    @patch('kagiso_auth.backends.KagisoUser', autospec=True)
+    def test_authenticate_with_social_sign_in_returns_user(self, MockKagisoUser):  # noqa
         email = 'test@email.com'
+        password = 'secret'
         strategy = 'facebook'
-        mocks.post_users(1, email)
-        # Unusable password is saved locally for Django compliance
-        # It is not used for auth purposes though
-        user = KagisoUser.objects.create_user(email, password='unusable')
+        user = KagisoUser(email=email, password=password)
+
+        MockKagisoUser.sync_user_data_locally.return_value = user
+
         url, data = mocks.post_sessions(http.HTTP_200_OK)
+        mocks.put_users(1, email)
 
         backend = KagisoBackend()
-        result = backend.authenticate(email=email, strategy=strategy)
+        result = backend.authenticate(
+            email=email,
+            strategy=strategy,
+        )
 
-        assert len(responses.calls) == 2
-        assert responses.calls[1].request.url == url
+        assert len(responses.calls) == 1
+        assert responses.calls[0].request.url == url
 
         assert isinstance(result, KagisoUser)
         assert result.id == user.id

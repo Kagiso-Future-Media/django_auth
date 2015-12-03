@@ -1,4 +1,6 @@
 # Kagiso Auth
+Django client for our Authentication API
+(https://github.com/Kagiso-Future-Media/auth)
 
 [ ![Codeship Status for Kagiso-Future-Media/django_auth](https://codeship.com/projects/f5876350-c731-0132-3b15-4a390261e3f5/status?branch=master)](https://codeship.com/projects/74869)
 [![codecov.io](https://codecov.io/github/Kagiso-Future-Media/django_auth/coverage.svg?token=LrFwE9TaXk&branch=master)](https://codecov.io/github/Kagiso-Future-Media/django_auth?branch=master)
@@ -38,7 +40,7 @@ SIGN_UP_EMAIL_TEMPLATE = 'Name of your mailchimp template'
 PASSWORD_RESET_EMAIL_TEMPLATE = 'Name of your mailchimp template'
 AUTHOMATIC_CONFIG = {} # see http://peterhudec.github.io/authomatic/reference/config.html if you want social auth
 ```
-Note that the above settings may use lambdas that receive the request as the sole argument if you wish to 
+Note that the above settings may use lambdas that receive the request as the sole argument if you wish to
 make your settings depend on the request.
 
 If you want to use the generic auth UI for sign ups and password resets etc,
