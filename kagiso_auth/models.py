@@ -55,7 +55,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
         self.raw_password = raw_password
 
     @staticmethod
-    def exists_in_auth_db(email):
+    def get_user_from_auth_db(email):
         endpoint = 'users/{email}'.format(email=email)
         status, data = AuthApiClient.call(endpoint, 'GET')
 
@@ -65,7 +65,7 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
                 user = KagisoUser.sync_from_auth_db_locally(data)
             return user
         elif status == http.HTTP_404_NOT_FOUND:
-            return False
+            return None
         else:
             raise AuthAPIUnexpectedStatusCode(status, data)
 

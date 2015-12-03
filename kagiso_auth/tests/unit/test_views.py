@@ -210,7 +210,7 @@ class OauthTest(TestCase):
         mock_authomatic.login.return_value = mock_result
         MockAuthomatic.return_value = mock_authomatic
 
-        MockKagisoUser.exists_in_auth_db.return_value = False
+        MockKagisoUser.get_user_from_auth_db.return_value = None
 
         response = self.client.get('/oauth/facebook/', follow=True)
 
@@ -304,7 +304,7 @@ class ForgotPasswordTest(TestCase):
 
     @patch('kagiso_auth.views.KagisoUser', autospec=True)
     def test_forgot_password_post_user_not_found(self, MockKagisoUser):  # noqa
-        MockKagisoUser.exists_in_auth_db.return_value = False
+        MockKagisoUser.get_user_from_auth_db.return_value = None
         data = {'email': 'no@user.com'}
 
         response = self.client.post('/forgot_password/', data, follow=True)
@@ -320,7 +320,7 @@ class ForgotPasswordTest(TestCase):
 
         user = KagisoUser(email=email)
         user.generate_reset_password_token = MagicMock(return_value='token')
-        MockKagisoUser.exists_in_auth_db.return_value = user
+        MockKagisoUser.get_user_from_auth_db.return_value = user
 
         data = {'email': email}
 

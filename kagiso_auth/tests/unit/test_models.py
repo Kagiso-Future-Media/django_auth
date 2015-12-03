@@ -311,11 +311,11 @@ class KagisoUserTest(TestCase):
         assert user.email == username
 
     @responses.activate
-    def test_exists_in_auth_db_returns_user_if_exists(self):
+    def test_get_user_from_auth_db_returns_user_if_exists(self):
         email = 'test@email.com'
         url, _ = mocks.get_user_by_email(1, email)
 
-        result = KagisoUser.exists_in_auth_db(email)
+        result = KagisoUser.get_user_from_auth_db(email)
 
         assert len(responses.calls) == 1
         assert responses.calls[0].request.url == url
@@ -323,11 +323,11 @@ class KagisoUserTest(TestCase):
         assert result.email == email
 
     @responses.activate
-    def test_exists_in_auth_db_returns_false_if_not_exists(self):
+    def test_get_user_from_auth_db_returns_none_if_not_exists(self):
         email = 'test@email.com'
         url, _ = mocks.get_user_by_email(1, email, http.HTTP_404_NOT_FOUND)
 
-        result = KagisoUser.exists_in_auth_db(email)
+        result = KagisoUser.get_user_from_auth_db(email)
 
         assert len(responses.calls) == 1
         assert responses.calls[0].request.url == url
@@ -335,7 +335,7 @@ class KagisoUserTest(TestCase):
         assert not result
 
     @responses.activate
-    def test_exists_in_auth_db_invalid_status_code_raises(self):
+    def test_get_user_from_auth_db_invalid_status_code_raises(self):
         email = 'test@email.com'
         url, _ = mocks.get_user_by_email(
             1,
@@ -344,7 +344,7 @@ class KagisoUserTest(TestCase):
         )
 
         with pytest.raises(AuthAPIUnexpectedStatusCode):
-            KagisoUser.exists_in_auth_db(email)
+            KagisoUser.get_user_from_auth_db(email)
 
     @responses.activate
     def test_sync_from_auth_db_locally_syncs_if_no_local_user(self):

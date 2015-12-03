@@ -171,7 +171,7 @@ def oauth(request, provider):
 
             email = result.user.data.get('email')
             provider = result.provider.name
-            user = KagisoUser.exists_in_auth_db(email)
+            user = KagisoUser.get_user_from_auth_db(email)
 
             if user:
                 _social_login(request, user.email, provider)
@@ -228,7 +228,7 @@ def forgot_password(request):
 
         if form.is_valid():
             email = form.cleaned_data['email']
-            user = KagisoUser.exists_in_auth_db(email)
+            user = KagisoUser.get_user_from_auth_db(email)
 
             if user:
                 msg = EmailMessage()
