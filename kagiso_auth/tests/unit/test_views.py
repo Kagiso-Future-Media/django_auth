@@ -56,6 +56,8 @@ class SignUpTest(TestCase):
         assert (
             'You will receive an email with confirmation instructions shortly. '  # noqa
             'This link will expire within 24 hours.'
+            'You will not be able to sign in until you have confirmed your \n'
+            'email address'
         ) == message
 
         assert len(mail.outbox) == 1
