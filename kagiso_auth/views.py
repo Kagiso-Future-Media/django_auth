@@ -25,6 +25,7 @@ def sign_up(request):
     confirm_message = (
         'You will receive an email with confirmation instructions shortly. '
         'This link will expire within 24 hours.'
+        'You will not be able to sign in until you have confirmed your email address'
     )
     error_message = 'You already have an account.'
 
