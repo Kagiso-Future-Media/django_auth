@@ -35,7 +35,7 @@
      </ul>
     </div>
     <form
-      action="{% url 'sign_up' %}"
+      action="{% url 'sign_up' %}?next={{ redirect_to }}"
       method="post"
       class="sign-up-form form-generic">
       {% for field in form %}
