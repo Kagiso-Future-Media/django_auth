@@ -103,6 +103,30 @@ class SignUpTest(TestCase):
         mock_instance.confirm_email.assert_called_with('my_token')
         assert b'<h1>Sign In</h1>' in response.content
 
+    @patch('kagiso_auth.forms.KagisoUser', autospec=True)
+    def test_redirects_to_next_url(self, MockKagisoUser):  # noqa
+        mock_user = MockKagisoUser.return_value
+        mock_user.id = 1
+        mock_user.save.return_value = mock_user
+
+        data = {
+            'email': 'bogus@email.com',
+            'first_name': 'Fred',
+            'last_name': 'Smith',
+            'password': 'mypassword',
+            'confirm_password': 'mypassword',
+            'mobile': '123456789',
+            'gender': 'MALE',
+            'region': 'EASTERN_CAPE',
+            'birth_date': date(1980, 1, 31),
+            'alerts': ['EMAIL', 'SMS'],
+        }
+
+        url = '/sign_up/?next=/some-url/'
+        response = self.client.post(url, data, follow=True)
+
+        assert response.request['PATH_INFO'] == '/some-url/'
+
 
 class SignInTest(TestCase):
 
