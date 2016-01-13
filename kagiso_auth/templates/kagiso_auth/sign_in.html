@@ -28,7 +28,7 @@
      </ul>
     </div>
     <form
-      action="{% url 'sign_in' %}"
+      action="{% url 'sign_in' %}?next={{ next }}"
       method="post"
       class="sign-in-form form-generic">
       {{ form.as_p }}

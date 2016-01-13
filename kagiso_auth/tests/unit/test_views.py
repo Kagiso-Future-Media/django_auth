@@ -178,6 +178,21 @@ class SignInTest(TestCase):
         assert mock_login.called
         assert mock_user.is_authenticated()
 
+    @patch('kagiso_auth.views.login', autospec=True)
+    @patch('kagiso_auth.views.authenticate', autospec=True)
+    def test_redirects_to_next_url(self, mock_authenticate, mock_login):
+        mock_user = MagicMock()
+        data = {'email': 'test@email.com', 'password': 'secret'}
+        mock_authenticate.return_value = mock_user
+
+        url = '/sign_in/?next=/some-url/'
+        response = self.client.post(url, data, follow=True)
+
+        assert response.request['PATH_INFO'] == '/some-url/'
+        assert mock_authenticate.called
+        assert mock_login.called
+        assert mock_user.is_authenticated()
+
 
 class OauthTest(TestCase):
 
