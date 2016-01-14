@@ -27,9 +27,10 @@ def sign_up(request):
         'This link will expire within 24 hours.'
     )
     error_message = 'You already have an account.'
+    next = request.GET.get('next', '/')
 
     if request.user.is_authenticated():
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect(next)
 
     oauth_data = request.session.get('oauth_data')
 
@@ -53,17 +54,20 @@ def sign_up(request):
             if not oauth_data:
                 _send_confirmation_email(user, request)
                 messages.success(request, confirm_message)
-                return HttpResponseRedirect('/')
+                return HttpResponseRedirect(next)
 
             _social_login(request, user.email, oauth_data['provider'])
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect(next)
     else:
         form = forms.SignUpForm.create(oauth_data=oauth_data)
 
     return render(
         request,
         'kagiso_auth/sign_up.html',
-        {'form': form},
+        {
+            'form': form,
+            'next': next,
+        }
     )
 
 
@@ -101,8 +105,10 @@ def confirm_account(request):
 @never_cache
 @csrf_exempt
 def sign_in(request):
+    next = request.GET.get('next', '/')
+
     if request.user.is_authenticated():
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect(next)
 
     if request.method == 'POST':
         form = forms.SignInForm(request.POST)
@@ -121,7 +127,7 @@ def sign_in(request):
                         request
                     )
                     user.save()
-                    response = HttpResponseRedirect('/')
+                    response = HttpResponseRedirect(next)
                     response.set_cookie('signed_in',
                                         value='true',
                                         max_age=2544)
@@ -145,7 +151,10 @@ def sign_in(request):
     return render(
         request,
         'kagiso_auth/sign_in.html',
-        {'form': form}
+        {
+            'form': form,
+            'next': next,
+        }
     )
 
 
