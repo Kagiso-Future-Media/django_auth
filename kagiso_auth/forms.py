@@ -38,6 +38,7 @@ class SignUpForm(forms.Form):
         ('WESTERN_CAPE', 'Western Cape'),
     )
     ALERT_CHOICES = (('EMAIL', 'Email'), ('SMS', 'SMS'))
+    MOBILE_REGEX = r'^\d{10}$'
 
     # --- Form fields ---
     email = forms.EmailField(
@@ -57,10 +58,10 @@ class SignUpForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput(), min_length=8)
     confirm_password = forms.CharField(widget=forms.PasswordInput())
     mobile = forms.RegexField(
-        regex=r'^\d{10}$',
+        regex=MOBILE_REGEX,
         widget=forms.TextInput(attrs={
             'placeholder': 'eg. 0821111111',
-            'pattern': r'^\d{10}$',
+            'pattern': MOBILE_REGEX,
             'title': 'eg. 0821111111'}),
         error_messages={
             'required': 'Correct mobile number format: 0821111111'
