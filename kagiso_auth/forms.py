@@ -56,11 +56,14 @@ class SignUpForm(forms.Form):
     )
     password = forms.CharField(widget=forms.PasswordInput(), min_length=8)
     confirm_password = forms.CharField(widget=forms.PasswordInput())
-    mobile = forms.CharField(  # TODO: RegexField?
+    mobile = forms.CharField(
         widget=forms.TextInput(attrs={
-            'data-toggle': 'tooltip',
-            'data-placement': 'bottom'}),
-        error_messages={'required': 'Please enter your mobile number'}
+            'placeholder': 'eg. 0821111111',
+            'pattern': r'^\d{10}$',
+            'title': '0821111111'}),
+        error_messages={
+            'required': 'Please enter your mobile number in the correct format'
+        }
     )
     gender = forms.ChoiceField(
         error_messages={'required': 'Please select a gender'},
