@@ -42,31 +42,45 @@ class SignUpForm(forms.Form):
 
     # --- Form fields ---
     email = forms.EmailField(
-        widget=forms.TextInput(
-            attrs={'placeholder': 'eg. name@emailaddress.com'}
-        ),
+        widget=forms.TextInput(attrs={
+            'placeholder': 'eg. name@emailaddress.com',
+            'pattern': '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$',
+            'title': 'eg. name@emailaddress.com',
+            'required': 'true'}),
         error_messages={'required': 'Please enter a valid email address'}
     )
     first_name = forms.CharField(
-        widget=forms.TextInput(attrs={'placeholder': 'eg. John'}),
+        widget=forms.TextInput(attrs={
+            'placeholder': 'eg. John',
+            'required': 'true'}),
         error_messages={'required': 'Please enter your name'}
     )
     last_name = forms.CharField(
-        widget=forms.TextInput(attrs={'placeholder': 'eg. Doe'}),
+        widget=forms.TextInput(attrs={
+            'placeholder': 'eg. Doe',
+            'required': 'true'}),
         error_messages={'required': 'Please enter your last name'}
     )
-    password = forms.CharField(widget=forms.PasswordInput(), min_length=8)
-    confirm_password = forms.CharField(widget=forms.PasswordInput())
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'required': 'true'}),
+        min_length=8
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'required': 'true'})
+    )
     mobile = forms.RegexField(
         regex=MOBILE_REGEX,
         widget=forms.TextInput(attrs={
-            'placeholder': 'eg. 0821111111',
+            'placeholder': 'eg. 0821234567',
             'pattern': MOBILE_REGEX,
-            'title': 'eg. 0821111111'}),
+            'title': 'eg. 0821234567',
+            'required': 'true'}),
         error_messages={
-            'required': 'Correct mobile number format: 0821111111'
+            'required': 'Correct mobile number format: 0821234567'
         },
-        error_message=('Correct mobile number format: 0821111111')
+        error_message=('Correct mobile number format: 0821234567')
     )
     gender = forms.ChoiceField(
         error_messages={'required': 'Please select a gender'},
