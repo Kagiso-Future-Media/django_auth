@@ -39,12 +39,13 @@ class SignUpForm(forms.Form):
     )
     ALERT_CHOICES = (('EMAIL', 'Email'), ('SMS', 'SMS'))
     MOBILE_REGEX = r'^\d{10}$'
+    EMAIL_REGEX = '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$'
 
     # --- Form fields ---
     email = forms.EmailField(
         widget=forms.TextInput(attrs={
             'placeholder': 'eg. name@emailaddress.com',
-            'pattern': '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$',
+            'pattern': EMAIL_REGEX,
             'title': 'eg. name@emailaddress.com',
             'required': 'true'}),
         error_messages={'required': 'Please enter a valid email address'}
