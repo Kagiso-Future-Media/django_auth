@@ -20,7 +20,7 @@ def validate_passwords_match(form):
 class SignInForm(forms.Form):
     email = forms.EmailField(label='Email Address')
     password = forms.CharField(widget=forms.PasswordInput())
-    remember_me = forms.BooleanField(required=False)
+    remember_me = forms.BooleanField(required=False, initial=True)
 
 
 class SignUpForm(forms.Form):
