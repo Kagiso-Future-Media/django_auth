@@ -235,6 +235,9 @@ class SignInTest(TestCase):
         assert mock_login.called
         assert mock_user.is_authenticated()
 
+        # To check if the expires attribute is set on the cookie, one must
+        # index the Morsel object that exists in the cookies list
+        # https://docs.python.org/3/library/http.cookies.html#morsel-objects
         for key, morsel in self.client.cookies.items():
             if key == 'sessionid':
                 assert not morsel['expires']
