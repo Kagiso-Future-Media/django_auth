@@ -174,7 +174,8 @@ def oauth(request, provider):
         get_setting(settings.SECRET_KEY, request)
     )
 
-    # //HACK: Created custom DjangoAdapter to override DjangoAdapter because it is incompetible with djang 1.9.'''
+    '''//HACK: Created custom DjangoAdapter to override DjangoAdapter because
+     it is not compatible with djang 1.9.'''
     result = authomatic.login(CustomDjangoAdapter(request, response), provider)
 
     if result:
