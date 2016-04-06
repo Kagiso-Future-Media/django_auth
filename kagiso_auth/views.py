@@ -159,6 +159,13 @@ def sign_in(request):
     )
 
 
+class CustomDjangoAdapter(DjangoAdapter):
+
+    @property
+    def params(self):
+        return dict(self.request)
+
+
 @never_cache
 def oauth(request, provider):
     response = HttpResponse()
@@ -166,7 +173,9 @@ def oauth(request, provider):
         get_setting(settings.AUTHOMATIC_CONFIG, request),
         get_setting(settings.SECRET_KEY, request)
     )
-    result = authomatic.login(DjangoAdapter(request, response), provider)
+
+    # //HACK: Created custom DjangoAdapter to override DjangoAdapter because it is incompetible with djang 1.9.'''
+    result = authomatic.login(CustomDjangoAdapter(request, response), provider)
 
     if result:
         if result.error:
