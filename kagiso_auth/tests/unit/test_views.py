@@ -217,6 +217,31 @@ class SignInTest(TestCase):
         assert mock_login.called
         assert mock_user.is_authenticated()
 
+    @patch('kagiso_auth.views.login', autospec=True)
+    @patch('kagiso_auth.views.authenticate', autospec=True)
+    def test_when_remember_me_is_unchecked_cookie_expires_attribute_is_not_set(self, mock_authenticate, mock_login):  # noqa
+        mock_user = MagicMock()
+        data = {
+            'email': 'test@email.com',
+            'password': 'secret',
+            'remember_me': False
+        }
+        mock_authenticate.return_value = mock_user
+
+        url = '/sign_in/'
+        self.client.post(url, data, follow=True)
+
+        assert mock_authenticate.called
+        assert mock_login.called
+        assert mock_user.is_authenticated()
+
+        # To check if the expires attribute is set on the cookie, one must
+        # index the Morsel object that exists in the cookies list
+        # https://docs.python.org/3/library/http.cookies.html#morsel-objects
+        for key, morsel in self.client.cookies.items():
+            if key == 'sessionid':
+                assert not morsel['expires']
+
 
 class OauthTest(TestCase):
 

@@ -115,6 +115,7 @@ def sign_in(request):
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
+            remember_me = form.cleaned_data['remember_me']
             try:
                 user = authenticate(
                     email=email,
@@ -127,12 +128,12 @@ def sign_in(request):
                         request
                     )
                     user.save()
-                    response = HttpResponseRedirect(next)
-                    response.set_cookie('signed_in',
-                                        value='true',
-                                        max_age=2544)
                     login(request, user)
-                    return response
+
+                    if not remember_me:
+                        request.session.set_expiry(0)
+
+                    return HttpResponseRedirect(next)
                 else:
                     messages.error(request, 'Incorrect email or password')
             except EmailNotConfirmedError:
