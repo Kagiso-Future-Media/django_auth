@@ -36,8 +36,8 @@ AUTH_USER_MODEL = 'kagiso_auth.KagisoUser'
 Then you will need to specify some other settings:
 ```
 APP_NAME = 'Your app name'
-SIGN_UP_EMAIL_TEMPLATE = 'Name of your mailchimp template'
-PASSWORD_RESET_EMAIL_TEMPLATE = 'Name of your mailchimp template'
+SIGN_UP_EMAIL_TEMPLATE = 'Name of your SparkPost template'
+PASSWORD_RESET_EMAIL_TEMPLATE = 'Name of your SparkPost template'
 AUTHOMATIC_CONFIG = {} # see http://peterhudec.github.io/authomatic/reference/config.html if you want social auth
 ```
 Note that the above settings may use lambdas that receive the request as the sole argument if you wish to

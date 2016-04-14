@@ -73,18 +73,16 @@ def sign_up(request):
 
 def _send_confirmation_email(user, request):
     msg = EmailMessage()
-    msg.template_name = get_setting(settings.SIGN_UP_EMAIL_TEMPLATE, request)
+    msg.to = [user.email]
     msg.from_email = 'noreply@kagisomedia.co.za'
     msg.subject = 'Confirm Your Account'
-    msg.to = [user.email]
-    msg.global_merge_vars = {
+    msg.template = get_setting(settings.SIGN_UP_EMAIL_TEMPLATE, request)
+    msg.substitution_data = {
         'link': request.build_absolute_uri(reverse('confirm_account')),
         'token': user.confirmation_token,
         'user_id': user.id,
         'first_name': user.first_name
     }
-    msg.use_template_subject = True
-    msg.use_template_from = True
     msg.send()
 
 
@@ -247,21 +245,19 @@ def forgot_password(request):
 
             if user:
                 msg = EmailMessage()
-                msg.template_name = get_setting(
+                msg.to = [user.email]
+                msg.from_email = 'noreply@kagisomedia.co.za'
+                msg.subject = 'Password Reset'
+                msg.template = get_setting(
                     settings.PASSWORD_RESET_EMAIL_TEMPLATE,
                     request
                 )
-                msg.from_email = 'noreply@kagisomedia.co.za'
-                msg.subject = 'Password Reset'
-                msg.to = [user.email]
-                msg.global_merge_vars = {
+                msg.substitution_data = {
                     'link': request.build_absolute_uri
                     (reverse('reset_password')),
                     'token': user.generate_reset_password_token(),
                     'user_id': user.id
                 }
-                msg.use_template_subject = True
-                msg.use_template_from = True
                 msg.send()
 
                 messages.success(request, reset_message)
