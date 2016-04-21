@@ -36,6 +36,7 @@ AUTH_USER_MODEL = 'kagiso_auth.KagisoUser'
 Then you will need to specify some other settings:
 ```
 APP_NAME = 'Your app name'
+AUTH_FROM_EMAIL = 'no-reply@domain.com' # Must be whitelisted with SparkPost!
 SIGN_UP_EMAIL_TEMPLATE = 'Name of your SparkPost template'
 PASSWORD_RESET_EMAIL_TEMPLATE = 'Name of your SparkPost template'
 AUTHOMATIC_CONFIG = {} # see http://peterhudec.github.io/authomatic/reference/config.html if you want social auth
