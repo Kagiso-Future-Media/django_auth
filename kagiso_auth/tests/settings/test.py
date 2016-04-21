@@ -86,6 +86,7 @@ STATIC_URL = '/static/'
 
 APP_NAME = 'Test App'
 AUTH_USER_MODEL = 'kagiso_auth.KagisoUser'
+AUTH_FROM_EMAIL = 'noreply@kagiso.io'
 SIGN_UP_EMAIL_TEMPLATE = 'xyz'
 PASSWORD_RESET_EMAIL_TEMPLATE = 'xyz'
 

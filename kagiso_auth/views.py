@@ -74,7 +74,7 @@ def sign_up(request):
 def _send_confirmation_email(user, request):
     msg = EmailMessage()
     msg.to = [user.email]
-    msg.from_email = 'noreply@kagisomedia.co.za'
+    msg.from_email = get_setting(settings.AUTH_FROM_EMAIL, request)
     msg.subject = 'Confirm Your Account'
     msg.template = get_setting(settings.SIGN_UP_EMAIL_TEMPLATE, request)
     msg.substitution_data = {
@@ -246,7 +246,7 @@ def forgot_password(request):
             if user:
                 msg = EmailMessage()
                 msg.to = [user.email]
-                msg.from_email = 'noreply@kagisomedia.co.za'
+                msg.from_email = get_setting(settings.AUTH_FROM_EMAIL, request)
                 msg.subject = 'Password Reset'
                 msg.template = get_setting(
                     settings.PASSWORD_RESET_EMAIL_TEMPLATE,
