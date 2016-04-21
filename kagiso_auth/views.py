@@ -182,9 +182,8 @@ def oauth(request, provider):
             if not (result.user.name and result.user.id):
                 result.user.update()
 
-            email = result.user.data.get('email')
             provider = result.provider.name
-            user = KagisoUser.get_user_from_auth_db(email)
+            user = KagisoUser.get_user_from_auth_db(result.user.email)
 
             if user:
                 _social_login(request, user.email, provider)
