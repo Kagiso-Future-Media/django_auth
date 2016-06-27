@@ -1,5 +1,5 @@
 [run]
-source = .
+branch=true
 omit=
     setup.py
     manage.py
@@ -7,3 +7,4 @@ omit=
     django_auth/*
     */migrations/*
     */tests/*
+source = .
