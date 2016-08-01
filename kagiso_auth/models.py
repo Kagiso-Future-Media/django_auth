@@ -1,7 +1,7 @@
 from dateutil import parser
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
-from django.db.models.signals import post_save, pre_delete, pre_save
+from django.db.models.signals import pre_delete, pre_save
 from django.db.utils import IntegrityError
 from django.dispatch import receiver
 from django.utils import timezone
