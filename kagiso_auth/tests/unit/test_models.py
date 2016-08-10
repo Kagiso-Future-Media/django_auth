@@ -532,6 +532,7 @@ class KagisoUserTest(TestCase):
     def test_age_returns_none_when_birth_date_doesnt_exist(self):
         user = KagisoUser(
             email='test@email.com',
+            profile={}
         )
 
         assert user.age is None
