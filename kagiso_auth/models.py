@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from dateutil import parser
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.db.models.signals import pre_delete, pre_save
@@ -47,6 +50,15 @@ class KagisoUser(AbstractBaseUser, PermissionsMixin):
     @username.setter
     def username(self, value):
         self.email = value
+
+    @property
+    def age(self):
+        if self.profile and 'birth_date' in self.profile:
+            birth_date = parser.parse(self.profile['birth_date'])
+            today = datetime.now()
+
+            passed_delta = relativedelta(today, birth_date)
+            return passed_delta.years
 
     def set_password(self, raw_password):
         # We don't want to save passwords locally

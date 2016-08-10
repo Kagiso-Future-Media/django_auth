@@ -5,6 +5,7 @@ psycopg2
 requests
 
 model_mommy
+freezegun
 pytest-django
 python-dateutil
 responses

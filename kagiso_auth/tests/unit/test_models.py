@@ -3,6 +3,7 @@ from django.conf import settings
 from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.utils import timezone
+from freezegun import freeze_time
 from model_mommy import mommy
 import pytest
 import responses
@@ -520,3 +521,30 @@ class KagisoUserTest(TestCase):
         with pytest.raises(AuthAPIUnexpectedStatusCode):
             did_sign_out = user.record_sign_out()
             assert not did_sign_out
+
+    def test_age_returns_none_when_profile_is_none(self):
+        user = KagisoUser(
+            email='test@email.com',
+        )
+
+        assert user.age is None
+
+    def test_age_returns_none_when_birth_date_doesnt_exist(self):
+        user = KagisoUser(
+            email='test@email.com',
+            profile={}
+        )
+
+        assert user.age is None
+
+    def test_age_returns_user_age(self):
+        user = KagisoUser(
+            email='test@email.com',
+            profile={
+                'birth_date': '2000-01-19'
+            }
+        )
+
+        with freeze_time('2016-02-01'):
+            expected_age = 16
+            assert user.age == expected_age
