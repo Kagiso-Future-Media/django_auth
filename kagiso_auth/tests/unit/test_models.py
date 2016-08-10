@@ -537,7 +537,7 @@ class KagisoUserTest(TestCase):
 
         assert user.age is None
 
-    def test_age_returns_user_age_when_birthday_passed(self):
+    def test_age_returns_user_age(self):
         user = KagisoUser(
             email='test@email.com',
             profile={
@@ -547,16 +547,4 @@ class KagisoUserTest(TestCase):
 
         with freeze_time('2016-02-01'):
             expected_age = 16
-            assert user.age == expected_age
-
-    def test_age_returns_user_age_when_birthday_upcoming(self):
-        user = KagisoUser(
-            email='test@email.com',
-            profile={
-                'birth_date': '2000-12-18'
-            }
-        )
-
-        with freeze_time('2016-02-01'):
-            expected_age = 15
             assert user.age == expected_age
