@@ -5,10 +5,10 @@
 
 {% block title %}Sign In{% endblock %}
 
-{% block uncached_content %}
+{% block content %}
 
-  <h1>Sign In</h1>
   <section class="form-main-wrapper">
+    <h1>Sign In</h1>
     <div class="logo-block"></div>
     <div class="social-sign-in">
       <p>Sign in using your social account.</p>
@@ -34,7 +34,7 @@
       method="post"
       class="sign-in-form form-generic">
       {{ form.as_p }}
-      <input type="submit" value="Sign in" class="btn btn-primary btn-lg" />
+      <input type="submit" value="Sign in" class="btn-primary-lg" />
     </form>
     <a href="{% url 'forgot_password' %}" class="forgot-password">
       Forgot your password?
