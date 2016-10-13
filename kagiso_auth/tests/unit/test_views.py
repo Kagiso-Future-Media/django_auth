@@ -16,7 +16,8 @@ class SignUpTest(TestCase):
         response = self.client.get('/sign_up/')
 
         assert response.status_code == 200
-        assert b'<h1 class="form-title">Register for an account</h1>' in response.content
+        assert b'<h1 class="form-title">Register for an account</h1>' \
+            in response.content
 
     @patch('kagiso_auth.forms.KagisoUser', autospec=True)
     def test_sign_up_post(self, MockKagisoUser):  # noqa
@@ -364,7 +365,8 @@ class ForgotPasswordTest(TestCase):
         response = self.client.get('/forgot_password/')
 
         assert response.status_code == 200
-        assert b'<h1 class="form-title">Forgot Password</h1>' in response.content
+        assert b'<h1 class="form-title">Forgot Password</h1>' \
+            in response.content
 
     @patch('kagiso_auth.views.KagisoUser', autospec=True)
     def test_forgot_password_post_user_not_found(self, MockKagisoUser):  # noqa
@@ -408,7 +410,8 @@ class ResetPasswordTest(TestCase):
         response = self.client.get('/reset_password/')
 
         assert response.status_code == 200
-        assert b'<h1 class="form-title">Reset Password</h1>' in response.content
+        assert b'<h1 class="form-title">Reset Password</h1>' \
+            in response.content
 
     @patch('kagiso_auth.views.KagisoUser', autospec=True)
     def test_reset_password_post(self, MockKagisoUser):  # noqa
