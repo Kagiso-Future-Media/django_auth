@@ -81,7 +81,8 @@ def _send_confirmation_email(user, request):
         'link': request.build_absolute_uri(reverse('confirm_account')),
         'token': user.confirmation_token,
         'user_id': user.id,
-        'first_name': user.first_name
+        'first_name': user.first_name,
+        'next': request.GET.get('next', '/')
     }
     msg.send()
 
@@ -92,12 +93,15 @@ def confirm_account(request):
 
     user_id = request.GET.get('user_id')
     token = request.GET.get('token')
+    next = request.GET.get('next', '/')
+
+    redirect = '?next=' + next
 
     user = get_object_or_404(KagisoUser, id=user_id)
     user.confirm_email(token)
 
     messages.success(request, confirm_message)
-    return HttpResponseRedirect(reverse('sign_in'))
+    return HttpResponseRedirect(reverse('sign_in') + redirect)
 
 
 @never_cache
