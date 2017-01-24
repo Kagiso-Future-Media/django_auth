@@ -81,7 +81,6 @@ class SignUpForm(forms.Form):
         error_messages={
             'required': 'Correct mobile number format: 0821234567'
         },
-        error_message=('Correct mobile number format: 0821234567')
     )
     gender = forms.ChoiceField(
         error_messages={'required': 'Please select a gender'},
