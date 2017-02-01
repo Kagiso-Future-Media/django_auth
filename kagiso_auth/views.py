@@ -5,10 +5,10 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMessage
-from django.core.urlresolvers import reverse
 from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
@@ -29,7 +29,7 @@ def sign_up(request):
     error_message = 'You already have an account.'
     next = request.GET.get('next', '/')
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return HttpResponseRedirect(next)
 
     oauth_data = request.session.get('oauth_data')
@@ -101,6 +101,7 @@ def confirm_account(request):
     user.confirm_email(token)
 
     messages.success(request, confirm_message)
+
     return HttpResponseRedirect(reverse('sign_in') + redirect)
 
 
@@ -109,7 +110,7 @@ def confirm_account(request):
 def sign_in(request):
     next = request.GET.get('next', '/')
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return HttpResponseRedirect(next)
 
     if request.method == 'POST':

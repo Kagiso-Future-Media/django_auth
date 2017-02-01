@@ -201,7 +201,7 @@ class SignInTest(TestCase):
         assert response.status_code == 200
         assert mock_authenticate.called
         assert mock_login.called
-        assert mock_user.is_authenticated()
+        assert mock_user.is_authenticated
 
     @patch('kagiso_auth.views.login', autospec=True)
     @patch('kagiso_auth.views.authenticate', autospec=True)
@@ -216,7 +216,7 @@ class SignInTest(TestCase):
         assert response.request['PATH_INFO'] == '/some-url/'
         assert mock_authenticate.called
         assert mock_login.called
-        assert mock_user.is_authenticated()
+        assert mock_user.is_authenticated
 
     @patch('kagiso_auth.views.login', autospec=True)
     @patch('kagiso_auth.views.authenticate', autospec=True)
@@ -234,7 +234,7 @@ class SignInTest(TestCase):
 
         assert mock_authenticate.called
         assert mock_login.called
-        assert mock_user.is_authenticated()
+        assert mock_user.is_authenticated
 
         # To check if the expires attribute is set on the cookie, one must
         # index the Morsel object that exists in the cookies list
