@@ -6,7 +6,7 @@
 #
 authomatic==0.1.0.post1
 cookies==2.2.1            # via responses
-django==1.9.7
+django==1.10.5
 flake8-import-order==0.8
 flake8-print==2.0.2
 flake8-quotes==0.3.0

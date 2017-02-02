@@ -1,5 +1,5 @@
 authomatic
-Django==1.9.7
+Django==1.10.5
 jsonfield
 psycopg2
 requests
