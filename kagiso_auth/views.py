@@ -163,6 +163,55 @@ def sign_in(request):
 
 
 @never_cache
+@csrf_exempt
+def update_details(request):
+    confirm_message = 'Your details have been updated successfully.'
+    error_message = 'Something went wrong. Please try again.'
+
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse('sign_in'))
+
+    user = get_object_or_404(KagisoUser, id=request.user.id)
+    form = forms.UpdateDetailsForm({
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'mobile': user.profile['mobile'],
+        'gender': user.profile['gender'],
+        'region': user.profile['region'],
+        'birth_date': user.profile['birth_date'],
+        'alerts': user.profile['alerts'],
+    })
+
+    oauth_data = request.session.get('oauth_data')
+
+    if request.method == 'POST':
+        form = forms.UpdateDetailsForm.create(
+            post_data=request.POST,
+            oauth_data=oauth_data
+        )
+
+        if form.is_valid():
+            try:
+                user = form.save(
+                    app_name=get_setting(settings.APP_NAME, request),
+                    user=user
+                )
+                messages.success(request, confirm_message)
+            except IntegrityError:
+                messages.error(request, error_message)
+                return HttpResponseRedirect(reverse('update_details'))
+
+    return render(
+        request,
+        'kagiso_auth/update_details.html',
+        {
+            'form': form
+        }
+    )
+
+
+@never_cache
 def oauth(request, provider):
     response = HttpResponse()
     authomatic = Authomatic(
@@ -265,7 +314,7 @@ def forgot_password(request):
                 msg.send()
 
                 messages.success(request, reset_message)
-                return HttpResponseRedirect(reverse('forgot_password'))
+                return HttpResponseRedirect('/')
             else:
                 messages.error(request, not_found_message)
                 return HttpResponseRedirect(reverse('forgot_password'))
@@ -299,7 +348,7 @@ def reset_password(request):
                 user.reset_password(password, token)
                 messages.success(request, reset_message)
 
-            return HttpResponseRedirect(reverse('sign_in'))
+            return HttpResponseRedirect('/')
     else:
         form = forms.ResetPasswordForm(
             initial={
