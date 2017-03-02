@@ -1,6 +1,8 @@
 from datetime import date
 from unittest.mock import MagicMock, patch
 
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.contrib.messages.middleware import MessageMiddleware
 from django.core import mail
 from django.db.utils import IntegrityError
 from django.test import RequestFactory, TestCase
@@ -142,44 +144,44 @@ class UpdateDetailsTest(TestCase):
 
     @responses.activate
     def test_form_is_populated_for_signed_in_user(self):
-        email = 'test@email.com'
-        first_name = 'Fred'
-        last_name = 'Smith'
-        profile = {
+        self.email = 'test@email.com'
+        self.first_name = 'Fred'
+        self.last_name = 'Smith'
+        self.profile = {
             'mobile': '0001230000',
-            'gender': 'M',
-            'region': 'Gauteng',
+            'gender': 'MALE',
+            'region': 'GAUTENG',
             'birth_date': '1990-01-01',
             'alerts': ''
         }
         # "log in" user
         mocks.post_users(
             1,
-            email,
-            first_name=first_name,
-            last_name=last_name,
-            profile=profile,
+            self.email,
+            first_name=self.first_name,
+            last_name=self.last_name,
+            profile=self.profile,
         )
-        user = mommy.make(
+        self.user = mommy.make(
             KagisoUser,
             id=None,
-            email=email,
-            first_name=first_name,
-            last_name=last_name,
-            profile=profile,
+            email=self.email,
+            first_name=self.first_name,
+            last_name=self.last_name,
+            profile=self.profile,
         )
         factory = RequestFactory()
         request = factory.get('/update_details/')
-        request.user = user
+        request.user = self.user
 
         response = views.update_details(request)
 
         assert b'test@email.com' in response.content
         assert b'Fred' in response.content
         assert b'Smith' in response.content
-        for key in profile:
+        for key in self.profile:
             if key != 'birth_date':
-                value = str.encode(profile[key])
+                value = str.encode(self.profile[key])
                 assert value in response.content
 
 

@@ -313,7 +313,7 @@ def forgot_password(request):
                 msg.send()
 
                 messages.success(request, reset_message)
-                return HttpResponseRedirect('/')
+                return HttpResponseRedirect(reverse('forgot_password'))
             else:
                 messages.error(request, not_found_message)
                 return HttpResponseRedirect(reverse('forgot_password'))
@@ -347,7 +347,7 @@ def reset_password(request):
                 user.reset_password(password, token)
                 messages.success(request, reset_message)
 
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect(reverse('sign_in'))
     else:
         form = forms.ResetPasswordForm(
             initial={
