@@ -183,9 +183,8 @@ def update_details(request):
         'alerts': user.profile['alerts'],
     })
 
-    oauth_data = request.session.get('oauth_data')
-
     if request.method == 'POST':
+        oauth_data = request.session.get('oauth_data')
         form = forms.UpdateDetailsForm.create(
             post_data=request.POST,
             oauth_data=oauth_data

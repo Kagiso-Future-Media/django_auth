@@ -4,7 +4,10 @@ from unittest.mock import MagicMock, patch
 from django.core import mail
 from django.db.utils import IntegrityError
 from django.test import RequestFactory, TestCase
+from model_mommy import mommy
+import responses
 
+from . import mocks
 from ... import views
 from ...exceptions import EmailNotConfirmedError
 from ...models import KagisoUser
@@ -127,6 +130,57 @@ class SignUpTest(TestCase):
         response = self.client.post(url, data, follow=True)
 
         assert response.request['PATH_INFO'] == '/some-url/'
+
+
+class UpdateDetailsTest(TestCase):
+
+    def test_signed_out_user_redirected_to_sign_in_page(self):
+        response = self.client.get('/update_details/', follow=True)
+
+        assert response.status_code == 200
+        assert b'<h1 class="form-title">Sign In</h1>' in response.content
+
+    @responses.activate
+    def test_form_is_populated_for_signed_in_user(self):
+        email = 'test@email.com'
+        first_name = 'Fred'
+        last_name = 'Smith'
+        profile = {
+            'mobile': '0001230000',
+            'gender': 'M',
+            'region': 'Gauteng',
+            'birth_date': '1990-01-01',
+            'alerts': ''
+        }
+        # "log in" user
+        mocks.post_users(
+            1,
+            email,
+            first_name=first_name,
+            last_name=last_name,
+            profile=profile,
+        )
+        user = mommy.make(
+            KagisoUser,
+            id=None,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            profile=profile,
+        )
+        factory = RequestFactory()
+        request = factory.get('/update_details/')
+        request.user = user
+
+        response = views.update_details(request)
+
+        assert b'test@email.com' in response.content
+        assert b'Fred' in response.content
+        assert b'Smith' in response.content
+        for key in profile:
+            if key != 'birth_date':
+                value = str.encode(profile[key])
+                assert value in response.content
 
 
 class SignInTest(TestCase):
