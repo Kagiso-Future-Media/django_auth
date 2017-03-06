@@ -1,8 +1,6 @@
 from datetime import date
 from unittest.mock import MagicMock, patch
 
-from django.contrib.sessions.middleware import SessionMiddleware
-from django.contrib.messages.middleware import MessageMiddleware
 from django.core import mail
 from django.db.utils import IntegrityError
 from django.test import RequestFactory, TestCase
