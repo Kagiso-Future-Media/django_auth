@@ -1,3 +1,4 @@
+import collections
 from datetime import datetime
 
 from django import forms
@@ -17,13 +18,37 @@ def validate_passwords_match(form):
         form.add_error('confirm_password', message)
 
 
+def set_user_details(instance, app_name, user, new_user):
+    user.email = instance.cleaned_data['email']
+
+    if new_user:
+        if instance.social_sign_in:
+            user.email_confirmed = timezone.now()
+        else:
+            user.set_password(instance.cleaned_data['password'])
+
+    user.first_name = instance.cleaned_data['first_name']
+    user.last_name = instance.cleaned_data['last_name']
+    user.profile = {
+        'mobile': instance.cleaned_data['mobile'],
+        'gender': instance.cleaned_data['gender'],
+        'region': instance.cleaned_data['region'],
+        'birth_date': str(instance.cleaned_data['birth_date']),
+        'alerts': instance.cleaned_data['alerts'],
+    }
+    user.created_via = app_name
+
+    user.save()
+    return user
+
+
 class SignInForm(forms.Form):
     email = forms.EmailField(label='Email Address')
     password = forms.CharField(widget=forms.PasswordInput())
     remember_me = forms.BooleanField(required=False, initial=True)
 
 
-class SignUpForm(forms.Form):
+class UpdateDetailsForm(forms.Form):
     GENDER_CHOICES = (('MALE', 'Male'), ('FEMALE', 'Female'),)
     REGION_CHOICES = (
         ('', 'Select Region'),
@@ -61,15 +86,6 @@ class SignUpForm(forms.Form):
             'placeholder': 'eg. Doe',
             'required': 'true'}),
         error_messages={'required': 'Please enter your last name'}
-    )
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={
-            'required': 'true'}),
-        min_length=8
-    )
-    confirm_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={
-            'required': 'true'})
     )
     mobile = forms.RegexField(
         regex=MOBILE_REGEX,
@@ -120,6 +136,30 @@ class SignUpForm(forms.Form):
         required=False
     )
 
+    @classmethod
+    def create(cls, post_data=None, oauth_data=None):
+        form = cls(post_data, initial=oauth_data)
+        return form
+
+    def save(self, app_name, user):
+        return set_user_details(
+            self,
+            app_name,
+            user,
+            new_user=0
+        )
+
+
+class SignUpForm(UpdateDetailsForm):
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'required': 'true'}),
+        min_length=8
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'required': 'true'})
+    )
     # --- Instance variables ---
     social_sign_in = False
 
@@ -131,6 +171,8 @@ class SignUpForm(forms.Form):
         if oauth_data:
             form.social_sign_in = True
             form._remove_password_fields()
+        else:
+            form._order_fields()
 
         return form
 
@@ -140,30 +182,31 @@ class SignUpForm(forms.Form):
 
     def save(self, app_name):
         user = KagisoUser()
-        user.email = self.cleaned_data['email']
-
-        if self.social_sign_in:
-            user.email_confirmed = timezone.now()
-        else:
-            user.set_password(self.cleaned_data['password'])
-
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
-        user.profile = {
-            'mobile': self.cleaned_data['mobile'],
-            'gender': self.cleaned_data['gender'],
-            'region': self.cleaned_data['region'],
-            'birth_date': str(self.cleaned_data['birth_date']),
-            'alerts': self.cleaned_data['alerts'],
-        }
-        user.created_via = app_name
-
-        user.save()
-        return user
+        return set_user_details(
+            self,
+            app_name,
+            user,
+            new_user=1
+        )
 
     def _remove_password_fields(self):
         del self.fields['password']
         del self.fields['confirm_password']
+
+    def _order_fields(self):
+        ordered_fields = [
+            ('email', self.fields['email']),
+            ('first_name', self.fields['first_name']),
+            ('last_name', self.fields['last_name']),
+            ('password', self.fields['password']),
+            ('confirm_password', self.fields['confirm_password']),
+            ('mobile', self.fields['mobile']),
+            ('gender', self.fields['gender']),
+            ('region', self.fields['region']),
+            ('birth_date', self.fields['birth_date']),
+            ('alerts', self.fields['alerts'])
+        ]
+        self.fields = collections.OrderedDict(ordered_fields)
 
 
 class ForgotPasswordForm(forms.Form):

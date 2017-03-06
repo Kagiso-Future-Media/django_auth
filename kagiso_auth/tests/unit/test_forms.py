@@ -111,3 +111,51 @@ class TestSignUpForm:
         assert user.created_via == settings.APP_NAME
 
         assert not user.set_password.called
+
+
+class TestUpdateDetailsForm:
+
+    def test_create_returns_form(self):
+        fields = [
+            'email',
+            'first_name',
+            'last_name',
+            'mobile',
+            'gender',
+            'region',
+            'birth_date',
+            'alerts'
+        ]
+        form = forms.UpdateDetailsForm.create()
+
+        assert isinstance(form, forms.UpdateDetailsForm)
+        for field in fields:
+            assert field in form.fields
+
+    @patch('kagiso_auth.forms.KagisoUser', autospec=True)
+    def test_save_(self, mock_kagiso_user):
+        data = {
+            'email': 'bogus@email.com',
+            'first_name': 'Fred',
+            'last_name': 'Smith',
+            'mobile': '0821111111',
+            'gender': 'MALE',
+            'region': 'EASTERN_CAPE',
+            'birth_date': date(1980, 1, 31),
+            'alerts': ['EMAIL', 'SMS'],
+        }
+        form = forms.UpdateDetailsForm.create(post_data=data)
+
+        assert form.is_valid()
+
+        user = form.save(app_name=settings.APP_NAME, user=mock_kagiso_user)
+
+        assert user.email == data['email']
+        assert user.first_name == data['first_name']
+        assert user.last_name == data['last_name']
+        assert user.profile['mobile'] == data['mobile']
+        assert user.profile['gender'] == data['gender']
+        assert user.profile['region'] == data['region']
+        assert user.profile['birth_date'] == str(data['birth_date'])
+        assert user.profile['alerts'] == data['alerts']
+        assert user.created_via == settings.APP_NAME
