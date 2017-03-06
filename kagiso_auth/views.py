@@ -169,7 +169,8 @@ def update_details(request):
     error_message = 'Something went wrong. Please try again.'
 
     if not request.user.is_authenticated:
-        return HttpResponseRedirect(reverse('sign_in'))
+        redirect = '?next=/update_details/'
+        return HttpResponseRedirect(reverse('sign_in') + redirect)
 
     user = get_object_or_404(KagisoUser, id=request.user.id)
     form = forms.UpdateDetailsForm({
