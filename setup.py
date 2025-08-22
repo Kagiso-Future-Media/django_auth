@@ -12,7 +12,7 @@ setup(
     include_package_data=True,
     install_requires=[
             'jsonfield==1.0.3',
-            'requests==2.10.0',
+            'requests>=2.10.0',
             'authomatic==0.1.0.post1'
     ],
 )
